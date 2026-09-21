@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment and secrets - never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account*.json
+
+# Real competitor / member data stays out of the repo.
+# Put anonymised fixtures in sample-data/ instead.
+data/
+exports/
+*.csv
+*.xlsx
+*.xls
+*.sqlite
+*.db
+!sample-data/*.csv
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Editor and OS cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Test output
+coverage/
