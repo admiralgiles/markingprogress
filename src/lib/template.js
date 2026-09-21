@@ -50,56 +50,14 @@ function normaliseCategories(categories, days) {
  * Build the CSV the admin downloads.
  *
  * @param {object} opts
- * @param {string} [opts.competitionName]
  * @param {string} opts.startDate  YYYY-MM-DD
  * @param {string} opts.endDate    YYYY-MM-DD
  * @param {Array<string|{name: string, days?: string[]}>} opts.categories
  * @returns {string} CSV text
  */
-export function buildTemplateCsv({
-  competitionName = 'Competition',
-  startDate,
-  endDate,
-  categories,
-}) {
+export function buildTemplateCsv({ startDate, endDate, categories }) {
   const days = eventDays(startDate, endDate)
   const cats = normaliseCategories(categories, days)
-
-  const notes = [
-    `MarkingProgress: marking criteria for ${competitionName}`,
-    `${startDate} to ${endDate}`,
-    '',
-    'Fill in one row for each thing a judge marks. Add as many rows as you',
-    'need. Copying an existing row and changing it is easier than starting',
-    'from scratch.',
-    '',
-    'Slot       When in the day, for example Morning, Afternoon, Evening,',
-    '           Final Inspection. Leave it blank for a category marked once',
-    '           only, like Logbook.',
-    'Group      The heading a criterion sits under, for example Tentage.',
-    'Criterion  The question the judge answers.',
-    'Max Marks  A whole number greater than zero.',
-    'Requires   yes or no. Put yes where the judge must write a reason for the',
-    'Reason     marks they give, such as bonus points with no set criteria.',
-    '           Leave blank for no.',
-    'Marking    Only needed where one sheet is split between different sets of',
-    'Group      judges, e.g. Yellow and Green. Judges marking Yellow see only',
-    '           the Yellow rows. The groups add up to the sheet total.',
-    '           Leave blank when every judge marks everything.',
-    '',
-    'Example of a filled-in row:',
-    `${cats[0].name},${days[0].name},${days[0].date},Evening,Tentage,Are all pegs and poles correct?,10,no,`,
-    '',
-    'Bonus points, where the judge decides and must say why:',
-    `${cats[0].name},${days[0].name},${days[0].date},Evening,Bonus Points,Bonus marks awarded,50,yes,`,
-    '',
-    'A sheet split by colour between two sets of judges:',
-    `${cats[0].name},${days[0].name},${days[0].date},Evening,Dining Shelter,Are the sides pulled taut?,15,no,Yellow`,
-    `${cats[0].name},${days[0].name},${days[0].date},Evening,Table and Seating,Is the table top secured?,20,no,Green`,
-    '',
-    'Delete any rows below for a category that is not running that day.',
-    'Lines starting with # are ignored when you upload this back.',
-  ]
 
   const rows = [COLUMNS]
   for (const cat of cats) {
@@ -113,8 +71,10 @@ export function buildTemplateCsv({
     }
   }
 
-  const header = notes.map((line) => (line ? `# ${line}` : '#')).join('\r\n')
-  return `${header}\r\n${toCsv(rows)}\r\n`
+  // Header row and data rows only. Guidance belongs on screen next to the
+  // download button, where it can be laid out and read, rather than as
+  // comment lines that a spreadsheet scatters across the columns.
+  return `${toCsv(rows)}\r\n`
 }
 
 /** Find each expected column, allowing for reordering and odd spacing. */

@@ -32,7 +32,7 @@ Generate a blank marking criteria CSV.
   --start       first day of the competition, YYYY-MM-DD   (required)
   --end         last day of the competition, YYYY-MM-DD    (required)
   --categories  comma separated, e.g. "Campcraft,Logbook"  (required)
-  --name        competition name, used in the header
+  --name        only used for the output filename
   --out         file to write to, otherwise prints to screen
 `
 
@@ -45,7 +45,6 @@ try {
   }
 
   const csv = buildTemplateCsv({
-    competitionName: args.name ?? 'Competition',
     startDate: args.start,
     endDate: args.end,
     categories: args.categories

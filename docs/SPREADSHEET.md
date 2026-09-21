@@ -62,9 +62,17 @@ Events longer than 14 days are refused, on the grounds that it is a typo.
 One row per thing a judge marks. So a Campcraft Sunday Afternoon inspection
 with 40 criteria is 40 rows.
 
-Columns can be in any order, as long as the header names match. Lines starting
-with `#` are ignored, which is how the instruction block at the top of an
-exported file survives the round trip.
+Columns can be in any order, as long as the header names match.
+
+The download is the heading row and the rows themselves, nothing else. An
+earlier version put guidance at the top as `#` comment lines, which was a
+mistake: in a spreadsheet the prose lines land in column A while the example
+lines, which contain commas, spray across all nine columns, and the whole
+sheet reads as a jumble. The guidance now sits on the setup screen beside the
+download button, where it can be laid out properly.
+
+Lines starting with `#` are still ignored on the way back in, so notes
+somebody adds by hand do not break the upload.
 
 ## Example
 

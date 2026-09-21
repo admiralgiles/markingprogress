@@ -37,7 +37,6 @@ test('a byte order mark from Excel does not corrupt the first column', () => {
 
 test('the export carries a row for every category on every day', () => {
   const csv = buildTemplateCsv({
-    competitionName: 'Liffey West County Shield',
     startDate: '2026-05-30',
     endDate: '2026-06-01',
     categories: ['Campcraft', 'Cooking and Eating'],
@@ -74,17 +73,34 @@ test('a category can be limited to the days it actually runs', () => {
   )
 })
 
-test('the instruction block is ignored when the file comes back', () => {
+test('the export opens with the header row, nothing before it', () => {
+  // No comment block. Prose lines land in column A while example lines, which
+  // contain commas, spray across every column, and the sheet reads as a mess.
   const csv = buildTemplateCsv({
     startDate: '2026-05-30',
     endDate: '2026-05-30',
     categories: ['Campcraft'],
   })
-  assert.ok(csv.startsWith('#'), 'export should open with instructions')
-  // The example row inside the comments must not be read as real data.
-  const rows = dataRows(csv)
-  assert.equal(rows.length, 1)
-  assert.equal(rows[0][5], '')
+  assert.ok(!csv.startsWith('#'), 'no comment block')
+  assert.ok(csv.startsWith('Category,Day,Date,'), 'header row comes first')
+
+  const rows = fromCsv(csv)
+  assert.deepEqual(rows[0], COLUMNS)
+  assert.equal(rows.length, 2, 'header plus one skeleton row')
+  assert.equal(rows[1][5], '', 'Criterion left blank for them to fill in')
+})
+
+test('notes someone adds by hand are still ignored on the way back in', () => {
+  // The importer keeps skipping # lines, so a file with scribbled notes at
+  // the top still loads.
+  const csv = [
+    '# our notes for next year',
+    COLUMNS.join(','),
+    'Campcraft,Saturday,2026-05-30,Evening,Tentage,Are pegs correct?,10,no,',
+  ].join('\n')
+  const { criteria, errors } = parseTemplateCsv(csv)
+  assert.deepEqual(errors, [])
+  assert.equal(criteria.length, 1)
 })
 
 test('no categories is refused with a usable message', () => {

@@ -481,3 +481,123 @@ td {
 .summary p {
   font-size: 0.9rem;
 }
+
+/* ----------------------------------------------------- category tick boxes */
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+label.check.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  margin: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+}
+
+label.check.chip:has(input:checked) {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+button.remove {
+  padding: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+button.remove:hover:not(:disabled) {
+  color: #e8a3a3;
+  border-color: #5a2b2b;
+}
+
+/* ------------------------------------------------- one box per field rows */
+
+.people-head,
+.people-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2rem;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.people-head.with-stream,
+.people-row.with-stream {
+  grid-template-columns: 1fr 1fr 1fr 2rem;
+}
+
+.people-head {
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.people-row {
+  margin-bottom: 0.4rem;
+}
+
+.people-row input {
+  margin-top: 0;
+}
+
+.people-row input.warn {
+  border-color: var(--warn);
+}
+
+@media (max-width: 34rem) {
+  .people-head {
+    display: none;
+  }
+  .people-head.with-stream,
+  .people-row.with-stream,
+  .people-row {
+    grid-template-columns: 1fr 2rem;
+  }
+  .people-row input:not(:first-child) {
+    grid-column: 1;
+  }
+  .people-row {
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+/* ------------------------------------------- the column guide on the setup */
+
+table.guide {
+  margin: 0.5rem 0 1rem;
+}
+
+table.guide td:first-child {
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 600;
+}
+
+table.guide td {
+  font-variant-numeric: normal;
+  vertical-align: top;
+  color: var(--muted);
+}
