@@ -11,12 +11,37 @@
  * the X in the right place eight times over.
  */
 
-/** A judge may not mark a team from their own Group. */
+/**
+ * A judge may not mark a team from their own Group.
+ *
+ * A marker can be one person or a pair running a station together and
+ * submitting one agreed score. For a pair, either member's Group is enough
+ * to rule them out: the conflict is with the people doing the judging, not
+ * with whoever happens to type the marks in.
+ */
 export function hasConflict(judge, team) {
-  const jg = judge?.group
   const tg = team?.group
-  if (!jg || !tg) return false
-  return normalise(jg) === normalise(tg)
+  if (!tg) return false
+
+  for (const group of groupsOf(judge)) {
+    if (normalise(group) === normalise(tg)) return true
+  }
+  return false
+}
+
+/** Every Group a marker brings with them, including a pair's members. */
+export function groupsOf(judge) {
+  const groups = []
+  if (judge?.group) groups.push(judge.group)
+  for (const m of judge?.members ?? []) {
+    if (m?.group) groups.push(m.group)
+  }
+  return groups
+}
+
+/** True if this marker is a pair submitting one agreed score. */
+export function isJointMarker(judge) {
+  return Array.isArray(judge?.members) && judge.members.length > 1
 }
 
 function normalise(group) {

@@ -5,26 +5,28 @@
 # competition's marking sheet.
 #
 # Lines starting with # are ignored on upload.
-Category,Day,Date,Slot,Group,Criterion,Max Marks
-Campcraft,Saturday,2026-05-30,Evening,Tentage,Is personal gear stored correctly inside the tent?,10
-Campcraft,Saturday,2026-05-30,Evening,Tentage,Are guy ropes taut with no tripping hazards?,10
-Campcraft,Saturday,2026-05-30,Evening,Tentage,Are all pegs and poles correct?,10
-Campcraft,Saturday,2026-05-30,Evening,General Site,Have segregated bins been provided?,10
-Campcraft,Saturday,2026-05-30,Evening,General Site,Are the bins being used correctly?,10
-Campcraft,Sunday,2026-05-31,Morning,Safety and Hygiene,Is there a clearly identifiable fire point?,15
-Campcraft,Sunday,2026-05-31,Morning,Safety and Hygiene,Is the fire point accessible?,15
-Campcraft,Sunday,2026-05-31,Morning,Equipment Storage,Are the boxes off the ground and accessible?,20
-Campcraft,Monday,2026-06-01,Final Inspection,Strike Camp,Is the site clean and free of rubbish?,20
-Cooking and Eating,Saturday,2026-05-30,Afternoon,Gas Cooker,Is the gas cooker fit for purpose?,15
-Cooking and Eating,Saturday,2026-05-30,Afternoon,Gas Cooker,Can the patrol attach and detach the regulator safely?,15
-Cooking and Eating,Saturday,2026-05-30,Afternoon,Menu,Have the patrol planned a menu for the weekend?,15
-Cooking and Eating,Saturday,2026-05-30,Afternoon,Menu,Is it a balanced menu?,15
-Cooking and Eating,Saturday,2026-05-30,Evening,Hygiene,"Is the food prepared hygienically, with no cross-contamination?",15
-Cooking and Eating,Saturday,2026-05-30,Evening,Hygiene,Is non-perishable food organised?,15
-Cooking and Eating,Saturday,2026-05-30,Evening,Meal Quality,Is the meal hot and cooked correctly?,20
-Cooking and Eating,Saturday,2026-05-30,Evening,Wash Up,"Are all pots, pans and utensils clean?",20
-Logbook,Sunday,2026-05-31,,,Is the logbook complete for the whole weekend?,200
-Logbook,Sunday,2026-05-31,,,Is there evidence the whole patrol contributed?,200
-Logbook,Sunday,2026-05-31,,,Overall presentation,200
-Campfire,Sunday,2026-05-31,Evening,,Was the performance well prepared?,250
-Campfire,Sunday,2026-05-31,Evening,,Did the whole patrol take part?,250
+Category,Day,Date,Slot,Group,Criterion,Max Marks,Requires Reason
+Campcraft,Saturday,2026-05-30,Evening,Tentage,Is personal gear stored correctly inside the tent?,10,no
+Campcraft,Saturday,2026-05-30,Evening,Tentage,Are guy ropes taut with no tripping hazards?,10,no
+Campcraft,Saturday,2026-05-30,Evening,Tentage,Are all pegs and poles correct?,10,no
+Campcraft,Saturday,2026-05-30,Evening,General Site,Have segregated bins been provided?,10,no
+Campcraft,Saturday,2026-05-30,Evening,General Site,Are the bins being used correctly?,10,no
+Campcraft,Sunday,2026-05-31,Morning,Safety and Hygiene,Is there a clearly identifiable fire point?,15,no
+Campcraft,Sunday,2026-05-31,Morning,Safety and Hygiene,Is the fire point accessible?,15,no
+Campcraft,Sunday,2026-05-31,Morning,Equipment Storage,Are the boxes off the ground and accessible?,20,no
+Campcraft,Monday,2026-06-01,Final Inspection,Strike Camp,Is the site clean and free of rubbish?,20,no
+Cooking and Eating,Saturday,2026-05-30,Afternoon,Gas Cooker,Is the gas cooker fit for purpose?,15,no
+Cooking and Eating,Saturday,2026-05-30,Afternoon,Gas Cooker,Can the patrol attach and detach the regulator safely?,15,no
+Cooking and Eating,Saturday,2026-05-30,Afternoon,Menu,Have the patrol planned a menu for the weekend?,15,no
+Cooking and Eating,Saturday,2026-05-30,Afternoon,Menu,Is it a balanced menu?,15,no
+Cooking and Eating,Saturday,2026-05-30,Evening,Hygiene,"Is the food prepared hygienically, with no cross-contamination?",15,no
+Cooking and Eating,Saturday,2026-05-30,Evening,Hygiene,Is non-perishable food organised?,15,no
+Cooking and Eating,Saturday,2026-05-30,Evening,Meal Quality,Is the meal hot and cooked correctly?,20,no
+Cooking and Eating,Saturday,2026-05-30,Evening,Wash Up,"Are all pots, pans and utensils clean?",20,no
+Logbook,Sunday,2026-05-31,,,Is the logbook complete for the whole weekend?,200,no
+Logbook,Sunday,2026-05-31,,,Is there evidence the whole patrol contributed?,200,no
+Logbook,Sunday,2026-05-31,,,Overall presentation,200,no
+Campfire,Sunday,2026-05-31,Evening,,Was the performance well prepared?,250,no
+Campfire,Sunday,2026-05-31,Evening,,Did the whole patrol take part?,250,no
+Campcraft,Monday,2026-06-01,Final Inspection,Bonus Points,Bonus marks awarded,50,yes
+Cooking and Eating,Saturday,2026-05-30,Evening,Bonus Points,Bonus marks awarded,15,yes

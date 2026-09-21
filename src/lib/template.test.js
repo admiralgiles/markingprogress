@@ -118,6 +118,7 @@ test('a filled-in template is read back with its marks', () => {
     group: 'Tentage',
     criterion: 'Are all pegs and poles correct?',
     maxMarks: 10,
+    requiresReason: false,
   })
   assert.equal(criteria[2].slot, '')
 })
@@ -254,4 +255,67 @@ test('summarise splits totals by category and slot', () => {
 
   const logbook = s.categories.find((c) => c.name === 'Logbook')
   assert.deepEqual(logbook.slots, [{ name: 'Sunday', total: 600, count: 1 }])
+})
+
+// --------------------------------------------- criteria that need a reason
+
+test('Requires Reason is read, and defaults to no', () => {
+  const csv = [
+    COLUMNS.join(','),
+    'Campcraft,Saturday,2026-05-30,Evening,Bonus Points,Bonus marks awarded,50,yes',
+    'Campcraft,Saturday,2026-05-30,Evening,Tentage,Are pegs correct?,10,no',
+    'Campcraft,Saturday,2026-05-30,Evening,Tentage,Are guys taut?,10,',
+  ].join('\n')
+
+  const { criteria, errors } = parseTemplateCsv(csv)
+  assert.deepEqual(errors, [])
+  assert.deepEqual(
+    criteria.map((c) => c.requiresReason),
+    [true, false, false],
+  )
+})
+
+test('yes and no are accepted in the forms people actually type', () => {
+  const rows = ['YES', 'Yes', 'y', 'true', '1']
+  for (const yes of rows) {
+    const csv = [
+      COLUMNS.join(','),
+      `Campcraft,Saturday,2026-05-30,Evening,Bonus,Bonus marks,50,${yes}`,
+    ].join('\n')
+    const { criteria, errors } = parseTemplateCsv(csv)
+    assert.deepEqual(errors, [], `"${yes}" should be accepted`)
+    assert.equal(criteria[0].requiresReason, true, `"${yes}" should mean yes`)
+  }
+})
+
+test('something that is neither yes nor no is reported', () => {
+  const csv = [
+    COLUMNS.join(','),
+    'Campcraft,Saturday,2026-05-30,Evening,Bonus,Bonus marks,50,maybe',
+  ].join('\n')
+  const { criteria, errors } = parseTemplateCsv(csv)
+  assert.equal(criteria.length, 0)
+  assert.match(errors[0], /Row 2: Requires Reason must be yes or no, got "maybe"/)
+})
+
+test('a file written before the column existed still imports', () => {
+  const csv = [
+    'Category,Day,Date,Slot,Group,Criterion,Max Marks',
+    'Campcraft,Saturday,2026-05-30,Evening,Tentage,Are pegs correct?,10',
+  ].join('\n')
+  const { criteria, errors } = parseTemplateCsv(csv)
+  assert.deepEqual(errors, [])
+  assert.equal(criteria[0].requiresReason, false)
+})
+
+test('the export writes the Requires Reason column', () => {
+  const csv = buildTemplateCsv({
+    startDate: '2026-05-30',
+    endDate: '2026-05-30',
+    categories: ['Campcraft'],
+  })
+  const rows = fromCsv(csv)
+  assert.deepEqual(rows[0], COLUMNS)
+  assert.equal(rows[0].length, 8)
+  assert.equal(rows[1].length, 8)
 })

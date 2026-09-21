@@ -11,10 +11,10 @@ device and sent to the database by themselves once a signal comes back.
 Design agreed, not yet built. The toolchain (React + Vite) is set up and
 builds, but `src/App.jsx` is still a placeholder.
 
-Working so far, with 74 tests: the criteria template generator and importer,
-the scoring rules, judge eligibility, and the results ranking. Checked against
-the real 2026 sheets for two different competitions, reproducing their
-category totals and results tables exactly.
+Working so far, with 97 tests: the criteria template generator and importer,
+the scoring rules, judge eligibility, mark validation, station rotation, and
+the results ranking. Checked against the real 2026 sheets for two different
+competitions, reproducing their category totals and results tables exactly.
 
 No user interface yet.
 
@@ -67,6 +67,7 @@ src/lib/csv.js          CSV reading and writing
 src/lib/template.js     Criteria template export and import
 src/lib/scoring.js      Combining judges' marks, completeness
 src/lib/judges.js       Who may mark whom, score comparability
+src/lib/rotation.js     Teams rotating around activity stations
 src/lib/results.js      Ranking, gaps, derived awards
 scripts/                Command line tools
 ```

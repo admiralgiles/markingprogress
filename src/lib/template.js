@@ -17,7 +17,17 @@ export const COLUMNS = [
   'Group',
   'Criterion',
   'Max Marks',
+  'Requires Reason',
 ]
+
+/**
+ * Columns an upload may leave out entirely, so a file written against an
+ * earlier version of the template still imports.
+ */
+export const OPTIONAL_COLUMNS = ['Requires Reason']
+
+const YES = new Set(['yes', 'y', 'true', '1'])
+const NO = new Set(['', 'no', 'n', 'false', '0'])
 
 /** Normalise the categories argument into {name, days} objects. */
 function normaliseCategories(categories, days) {
@@ -68,9 +78,15 @@ export function buildTemplateCsv({
     'Group      The heading a criterion sits under, for example Tentage.',
     'Criterion  The question the judge answers.',
     'Max Marks  A whole number greater than zero.',
+    'Requires   yes or no. Put yes where the judge must write a reason for the',
+    'Reason     marks they give, such as bonus points with no set criteria.',
+    '           Leave blank for no.',
     '',
     'Example of a filled-in row:',
-    `${cats[0].name},${days[0].name},${days[0].date},Evening,Tentage,Are all pegs and poles correct?,10`,
+    `${cats[0].name},${days[0].name},${days[0].date},Evening,Tentage,Are all pegs and poles correct?,10,no`,
+    '',
+    'Bonus points, where the judge decides and must say why:',
+    `${cats[0].name},${days[0].name},${days[0].date},Evening,Bonus Points,Bonus marks awarded,50,yes`,
     '',
     'Delete any rows below for a category that is not running that day.',
     'Lines starting with # are ignored when you upload this back.',
@@ -80,7 +96,11 @@ export function buildTemplateCsv({
   for (const cat of cats) {
     for (const day of days) {
       if (!cat.days.includes(day.name)) continue
-      rows.push([cat.name, day.name, day.date, '', '', '', ''])
+      const row = COLUMNS.map(() => '')
+      row[0] = cat.name
+      row[1] = day.name
+      row[2] = day.date
+      rows.push(row)
     }
   }
 
@@ -95,8 +115,11 @@ function mapHeader(headerRow) {
   const missing = []
   for (const col of COLUMNS) {
     const at = seen.indexOf(col.toLowerCase())
-    if (at === -1) missing.push(col)
-    else index[col] = at
+    if (at === -1) {
+      if (!OPTIONAL_COLUMNS.includes(col)) missing.push(col)
+    } else {
+      index[col] = at
+    }
   }
   return { index, missing }
 }
@@ -130,7 +153,8 @@ export function parseTemplateCsv(text) {
 
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r]
-    const get = (col) => (row[index[col]] ?? '').trim()
+    const get = (col) =>
+      index[col] === undefined ? '' : (row[index[col]] ?? '').trim()
     const line = r + 1
 
     const criterion = get('Criterion')
@@ -157,6 +181,17 @@ export function parseTemplateCsv(text) {
       maxMarks = Number(rawMarks)
     }
 
+    const rawReason = get('Requires Reason').toLowerCase()
+    let requiresReason = false
+    if (YES.has(rawReason)) {
+      requiresReason = true
+    } else if (!NO.has(rawReason)) {
+      errors.push(
+        `Row ${line}: Requires Reason must be yes or no, got "${get('Requires Reason')}"`,
+      )
+      continue
+    }
+
     if (!category || !criterion || maxMarks === null) continue
 
     const entry = {
@@ -167,6 +202,7 @@ export function parseTemplateCsv(text) {
       group: get('Group'),
       criterion,
       maxMarks,
+      requiresReason,
     }
 
     const key = [entry.category, entry.day, entry.slot, entry.group, entry.criterion]

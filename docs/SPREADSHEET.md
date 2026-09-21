@@ -57,6 +57,7 @@ Events longer than 14 days are refused, on the grounds that it is a typo.
 | `Group` | no | The heading a criterion sits under, e.g. `Tentage`, `Food Storage` |
 | `Criterion` | yes | The question the judge answers |
 | `Max Marks` | yes | A whole number greater than zero |
+| `Requires Reason` | no | `yes` where the judge must write why they gave the marks. Used for bonus points. Blank means no. |
 
 One row per thing a judge marks. So a Campcraft Sunday Afternoon inspection
 with 40 criteria is 40 rows.
@@ -68,12 +69,19 @@ exported file survives the round trip.
 ## Example
 
 ```csv
-Category,Day,Date,Slot,Group,Criterion,Max Marks
-Campcraft,Saturday,2026-05-30,Evening,Tentage,Is Personal Gear stored correctly inside the tent(s)?,10
-Campcraft,Saturday,2026-05-30,Evening,Tentage,Are guy ropes correct? No tripping hazards?,10
-Campcraft,Saturday,2026-05-30,Evening,General Site,Have segregated bins been provided?,10
-Logbook,Sunday,2026-05-31,,,Overall presentation and completeness,600
+Category,Day,Date,Slot,Group,Criterion,Max Marks,Requires Reason
+Campcraft,Saturday,2026-05-30,Evening,Tentage,Is Personal Gear stored correctly inside the tent(s)?,10,no
+Campcraft,Saturday,2026-05-30,Evening,Tentage,Are guy ropes correct? No tripping hazards?,10,no
+Campcraft,Saturday,2026-05-30,Evening,General Site,Have segregated bins been provided?,10,no
+Logbook,Sunday,2026-05-31,,,Overall presentation and completeness,600,no
+Campcraft,Monday,2026-06-01,Final Inspection,Bonus Points,Bonus marks awarded,50,yes
 ```
+
+### Bonus points
+
+A bonus section with no set criteria is one criterion whose maximum is the
+cap, with `Requires Reason` set to `yes`. The judge awards up to the cap and
+has to say why. Awarding nothing needs no explanation.
 
 Criteria are full of commas, apostrophes and quotes, so fields are quoted
 properly on the way out and unquoted on the way back in. Excel's byte order
@@ -86,6 +94,7 @@ Rejected, with the row number, if:
 - A required column is missing
 - A row has no `Category` or no `Criterion`
 - `Max Marks` is missing, zero, negative, or not a whole number
+- `Requires Reason` is something other than yes or no
 - The same `Criterion` appears twice in the same category, day, slot and group
 
 Deliberately allowed:
@@ -95,6 +104,8 @@ Deliberately allowed:
   and Eating sheet.
 - **Untouched rows from the export.** A row with a category and day but nothing
   else is one the admin did not use. Skipped quietly.
+- **A file written before `Requires Reason` existed.** The column is optional,
+  so an older file still imports and everything defaults to no.
 
 After a successful upload the app shows totals per category and per slot, so
 they can be checked against what they should be before anyone starts marking.

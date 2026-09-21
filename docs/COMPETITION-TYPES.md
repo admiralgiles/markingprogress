@@ -75,14 +75,22 @@ The third is genuinely different: in the Cub tally, the Adventure Skills rows
 hold one number per team with no per-judge columns at all, because the pair
 running the station agree a score between them.
 
+**Decided: a pair agrees one score and enters it once.** The pair is recorded
+as the marker, not whichever of them held the iPad. Either member's Group
+rules the pair out of marking a team, since the conflict is with the people
+judging rather than with whoever types it in.
+
 ## Bonus Points
 
 The Cub sheet has Bonus Points sections worth 50, 15 and 15 with no criteria
 listed under them. The judge awards up to the cap using their judgement.
 
-This needs no special handling: it is a group with one criterion whose
-maximum is the cap. Worth recording because it is easy to mistake for a
-section someone forgot to fill in.
+This is a group with one criterion whose maximum is the cap, flagged as
+needing a reason.
+
+**Decided: the judge must write why.** Marks with no set criteria are the
+ones most likely to be queried afterwards, and a reason also gives the
+patrol something useful back. Awarding nothing needs no explanation.
 
 ## Things the Cub spreadsheet gets wrong
 

@@ -9,6 +9,7 @@ import {
   roundTo,
   scoreCategory,
   scoreSlot,
+  validateMarkEntry,
 } from './scoring.js'
 
 const marks = (...values) =>
@@ -294,4 +295,67 @@ test('rounding is for display only', () => {
   assert.equal(roundTo(407.33333333, 2), 407.33)
   assert.equal(roundTo(null), null)
   assert.equal(roundTo(undefined), null)
+})
+
+// ------------------------------------------------- one mark at a time
+
+test('a mark above the maximum available is refused', () => {
+  // The 2026 Cub sheet has 134 awarded against a maximum of 130.
+  const r = validateMarkEntry(
+    { criterion: 'Campcraft Safety', maxMarks: 130 },
+    { value: 134 },
+  )
+  assert.equal(r.ok, false)
+  assert.match(r.errors[0], /134 awarded but only 130 available/)
+})
+
+test('full marks are fine', () => {
+  const r = validateMarkEntry({ criterion: 'x', maxMarks: 130 }, { value: 130 })
+  assert.deepEqual(r.errors, [])
+  assert.equal(r.ok, true)
+})
+
+test('a negative mark is refused', () => {
+  const r = validateMarkEntry({ criterion: 'x', maxMarks: 10 }, { value: -1 })
+  assert.equal(r.ok, false)
+  assert.match(r.errors[0], /less than zero/)
+})
+
+test('something that is not a number is refused', () => {
+  const r = validateMarkEntry({ criterion: 'x', maxMarks: 10 }, { value: 'nine' })
+  assert.equal(r.ok, false)
+  assert.match(r.errors[0], /not a number/)
+})
+
+test('not marked yet is a legitimate state, not a bad entry', () => {
+  for (const value of [null, undefined, '']) {
+    assert.equal(validateMarkEntry({ maxMarks: 10 }, { value }).ok, true)
+  }
+})
+
+test('bonus marks need a reason', () => {
+  const bonus = { criterion: 'Bonus marks awarded', maxMarks: 50, requiresReason: true }
+
+  const noReason = validateMarkEntry(bonus, { value: 15 })
+  assert.equal(noReason.ok, false)
+  assert.match(noReason.errors[0], /a reason is needed/)
+
+  const blankReason = validateMarkEntry(bonus, { value: 15, reason: '   ' })
+  assert.equal(blankReason.ok, false)
+
+  const withReason = validateMarkEntry(bonus, {
+    value: 15,
+    reason: 'Helped another team strike camp',
+  })
+  assert.equal(withReason.ok, true)
+})
+
+test('awarding no bonus needs no explanation', () => {
+  const bonus = { criterion: 'Bonus marks awarded', maxMarks: 50, requiresReason: true }
+  assert.equal(validateMarkEntry(bonus, { value: 0 }).ok, true)
+})
+
+test('an ordinary criterion needs no reason', () => {
+  const r = validateMarkEntry({ criterion: 'x', maxMarks: 10 }, { value: 8 })
+  assert.equal(r.ok, true)
 })

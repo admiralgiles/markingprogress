@@ -175,6 +175,38 @@ So when a competition sums, the app counts how many judges have marked each
 team and refuses to treat the totals as comparable when that count varies.
 See [COMPETITION-TYPES.md](COMPETITION-TYPES.md).
 
+The intended answer to this is that it should not be possible, and that is
+right: the process is meant to produce the same number of judges for every
+team. The check exists because the process depends on people and devices, and
+this app exists precisely because both fail. It costs nothing when the
+process holds, since it only says anything when the counts differ.
+
+### A pair of judges can submit one agreed score
+
+Where two judges run a station together, the pair is the marker rather than
+whichever of them held the iPad. Either member's Group rules the pair out of
+marking a team, because the conflict is with the people judging.
+
+### Every mark is checked as it is entered
+
+- **Not above the maximum.** The 2026 Cub sheet has 134 awarded against a
+  maximum of 130. It happened not to change the placings, by four points.
+- **Not negative.**
+- **A reason where one is required.** Bonus marks with no set criteria have
+  to be justified. Awarding nothing needs no explanation.
+
+Not marked yet stays a legitimate state. It is handled by the completeness
+view, not treated as a bad entry.
+
+## Teams rotating around stations
+
+Where teams rotate between activity stations, the app holds the plan and a
+judge at a station sees only the teams coming to them, in order.
+
+The plan is checked when it is set up, which catches the ways a hand-built
+rotation goes wrong: a team in two places at once, a team doing the same
+station twice, or a team left off entirely.
+
 Full precision is kept throughout and rounding happens only on screen.
 Rounding each slot before adding them shifts the total, and with 51 marks
 between fourth and fifth place out of 8500 that is not worth introducing.

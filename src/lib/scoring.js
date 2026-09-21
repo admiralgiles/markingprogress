@@ -234,6 +234,57 @@ export function scoreCategory(slotResults) {
   }
 }
 
+/**
+ * Check one mark before it is accepted.
+ *
+ * Two things the spreadsheets cannot catch:
+ *
+ * - A mark above the maximum available. The 2026 Cub sheet has 134 awarded
+ *   against a maximum of 130. It happened not to change the placings, by
+ *   about four points of luck.
+ * - A criterion the judge must justify, such as bonus marks with no set
+ *   criteria, submitted with no reason given.
+ *
+ * @param {{id?: string, criterion?: string, maxMarks: number, requiresReason?: boolean}} criterion
+ * @param {{value: number|null, reason?: string}} entry
+ * @returns {{ok: boolean, errors: string[]}}
+ */
+export function validateMarkEntry(criterion, entry) {
+  const errors = []
+  const label = criterion?.criterion ?? criterion?.id ?? 'this criterion'
+  const value = entry?.value
+
+  if (value === null || value === undefined || value === '') {
+    // Not marked yet is a legitimate state, handled by the completeness
+    // checks rather than treated as a bad entry.
+    return { ok: true, errors }
+  }
+
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    errors.push(`${label}: "${value}" is not a number`)
+    return { ok: false, errors }
+  }
+
+  if (value < 0) {
+    errors.push(`${label}: cannot award less than zero`)
+  }
+
+  if (typeof criterion?.maxMarks === 'number' && value > criterion.maxMarks) {
+    errors.push(
+      `${label}: ${value} awarded but only ${criterion.maxMarks} available`,
+    )
+  }
+
+  if (criterion?.requiresReason && value > 0) {
+    const reason = String(entry?.reason ?? '').trim()
+    if (!reason) {
+      errors.push(`${label}: a reason is needed for these marks`)
+    }
+  }
+
+  return { ok: errors.length === 0, errors }
+}
+
 /** Round for display only, never for further arithmetic. */
 export function roundTo(value, places = 2) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return null
