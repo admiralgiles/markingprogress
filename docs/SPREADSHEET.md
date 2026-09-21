@@ -1,111 +1,121 @@
-# The competition spreadsheet
+# The marking criteria CSV
 
-One spreadsheet defines a whole competition. The admin uploads it and the app
-builds the marking sheets from it.
+Rather than handing out a fixed template, the app generates one shaped to the
+event. The admin says when the competition runs and which categories are in
+it, and gets back a CSV with the valid day and category combinations already
+filled in. They add their criteria and upload it back.
 
-A filled-in example is at
-[`sample-data/competition-template.xlsx`](../sample-data/competition-template.xlsx).
-The example names and groups in it are invented.
+```
+Admin enters dates + categories
+        |
+        v
+Download a CSV shaped to that event
+        |
+        v
+Fill in the criteria in Excel
+        |
+        v
+Upload it back
+        |
+        v
+App checks it and reports any problems by row number
+```
 
-## Rules that apply to every tab
+Try it now, before the admin screen exists:
 
-- Tab names must be exactly as below. Do not rename them.
-- The header row must stay as it is. The importer looks for those column names.
-- Section names must be spelled identically wherever they appear. `First Aid`
-  on one tab and `First aid` on another will not match up.
-- Grey columns are calculated by the spreadsheet itself. The importer ignores
-  them, so they are there to help the person filling it in, not the app.
-- Blank rows are skipped. Trailing empty rows are fine.
-- `.xlsx` and `.csv` are both accepted. A CSV can only carry one tab, so a
-  full competition needs the `.xlsx`.
+```bash
+npm run export-template -- \
+  --start 2026-05-30 --end 2026-06-01 \
+  --name "Liffey West County Shield" \
+  --categories "Check In,Campcraft,Cooking and Eating,Logbook,Campfire,Programme" \
+  --out criteria.csv
+```
 
-## Tab: `Marking Sheet`
+## Days
 
-Every item being marked.
+The competition start and finish dates drive everything. Days come out in the
+order they happen, so a Saturday to Monday event reads Saturday, Sunday,
+Monday.
+
+Where day names have to be sorted without dates, the week runs **Thursday,
+Friday, Saturday, Sunday, Monday, Tuesday, Wednesday**. Shield events run
+Thursday to Saturday, Friday to Sunday, Saturday to Monday, or Thursday to
+Sunday for Phoenix. Sorting a Saturday to Monday event by a normal
+Monday-first week gives Monday, Saturday, Sunday, which is nonsense on a
+marking sheet.
+
+Events longer than 14 days are refused, on the grounds that it is a typo.
+
+## Columns
 
 | Column | Required | What it holds |
 |---|---|---|
-| `Section` | yes | The station or category, for example `First Aid` |
-| `Item` | yes | The specific thing being marked |
+| `Category` | yes | Campcraft, Cooking and Eating, Logbook, Campfire, Check In, Programme |
+| `Day` | no | Which day of the event, e.g. `Saturday` |
+| `Date` | no | The actual date, `YYYY-MM-DD` |
+| `Slot` | no | When in the day: `Morning`, `Afternoon`, `Evening`, `Final Inspection`. Blank for a category marked once only, like Logbook. |
+| `Group` | no | The heading a criterion sits under, e.g. `Tentage`, `Food Storage` |
+| `Criterion` | yes | The question the judge answers |
 | `Max Marks` | yes | A whole number greater than zero |
-| `Notes` | no | Guidance shown to the judge on screen |
 
-A `Total marks available` row at the bottom is optional and ignored on import.
+One row per thing a judge marks. So a Campcraft Sunday Afternoon inspection
+with 40 criteria is 40 rows.
 
-## Tab: `Sections`
+Columns can be in any order, as long as the header names match. Lines starting
+with `#` are ignored, which is how the instruction block at the top of an
+exported file survives the round trip.
 
-How each section is judged. One row per section.
+## Example
 
-| Column | Required | What it holds |
+```csv
+Category,Day,Date,Slot,Group,Criterion,Max Marks
+Campcraft,Saturday,2026-05-30,Evening,Tentage,Is Personal Gear stored correctly inside the tent(s)?,10
+Campcraft,Saturday,2026-05-30,Evening,Tentage,Are guy ropes correct? No tripping hazards?,10
+Campcraft,Saturday,2026-05-30,Evening,General Site,Have segregated bins been provided?,10
+Logbook,Sunday,2026-05-31,,,Overall presentation and completeness,600
+```
+
+Criteria are full of commas, apostrophes and quotes, so fields are quoted
+properly on the way out and unquoted on the way back in. Excel's byte order
+mark is stripped rather than being left stuck to the first column name.
+
+## What is checked on upload
+
+Rejected, with the row number, if:
+
+- A required column is missing
+- A row has no `Category` or no `Criterion`
+- `Max Marks` is missing, zero, negative, or not a whole number
+- The same `Criterion` appears twice in the same category, day, slot and group
+
+Deliberately allowed:
+
+- **The same wording in different groups.** `Is non-perishable food organised?`
+  genuinely appears under both Food Storage and Hygiene on the real Cooking
+  and Eating sheet.
+- **Untouched rows from the export.** A row with a category and day but nothing
+  else is one the admin did not use. Skipped quietly.
+
+After a successful upload the app shows totals per category and per slot, so
+they can be checked against what they should be before anyone starts marking.
+
+## Confirmed against the real event
+
+The 2026 Shield marking sheets convert into this format cleanly: **252
+criteria across 14 slots, no errors**, and every total reconciles.
+
+| Category | Criteria | Total |
 |---|---|---|
-| `Section` | yes | Must match a section on `Marking Sheet` |
-| `Judges` | yes | How many judges cover this section |
-| `Combine` | yes | One of the five values below |
-| `Max Marks` | calculated | Total marks for the section |
-| `Judges listed` | calculated | How many judges are actually named on `Judges` |
-| `Notes` | no | For your own reference |
-
-### `Combine` values
-
-| Value | What happens |
-|---|---|
-| `Single` | One judge only. Their mark is the mark. |
-| `Average` | Every judge's mark is averaged. |
-| `Highest` | The highest mark counts. |
-| `Lowest` | The lowest mark counts. |
-| `Separate` | All marks shown side by side. A person decides the final score. |
-
-These are set per section, so one competition can mix them freely.
-
-`Judges listed` exists to catch setup mistakes. If it does not match `Judges`,
-someone is missing from the `Judges` tab or their section is misspelled. The
-importer rejects the file when they disagree, rather than discovering it
-halfway through a competition.
-
-## Tab: `Teams`
-
-Who is being judged.
-
-| Column | Required | What it holds |
-|---|---|---|
-| `Team` | yes | Patrol or team name. Must be unique. |
-| `Group` | yes | Which Scout Group or unit they are from |
-| `Category` | no | Lets you rank groups separately, e.g. `Scouts`, `Ventures` |
-| `Notes` | no | For your own reference |
-
-## Tab: `Judges`
-
-Who is marking what. One row per judge per section, so a judge covering two
-sections gets two rows.
-
-| Column | Required | What it holds |
-|---|---|---|
-| `Judge Name` | yes | As it should appear in the sign-in list |
-| `Section` | yes | Must match a section on `Sections` |
-| `Notes` | no | For your own reference |
-
-Judge names are shown in a list at sign-in, so they need to be recognisable
-to the judge picking their own name off a phone screen.
-
-## What the importer checks before accepting a file
-
-The file is rejected with a plain-language message if:
-
-- A tab or a required column is missing
-- A section on `Marking Sheet` has no row on `Sections`, or the reverse
-- A section on `Judges` does not exist on `Sections`
-- `Judges` and `Judges listed` disagree for any section
-- `Combine` is not one of the five accepted values
-- `Combine` is `Single` but more than one judge is assigned
-- `Max Marks` is missing, zero, negative or not a number
-- Two teams share a name
-
-Better to fail on the laptop the night before than halfway through a wet
-Saturday.
+| Check In | 3 | 45 |
+| Campfire | 7 | 500 |
+| Logbook | 17 | 600 |
+| Campcraft | 148 | 3455 |
+| Cooking and Eating | 77 | 1200 |
+| Programme | not yet supplied | 2700 |
+| **Overall** | | **8500** |
 
 ## A note on real data
 
-Do not commit a filled-in competition file containing real member or
-competitor names to this repository. `.gitignore` blocks loose spreadsheets
-for that reason. The only spreadsheet tracked here is the template, with
-invented names.
+Do not commit a filled-in criteria file for a live competition, and never one
+containing team names, judge names or Scouts' names. `.gitignore` blocks loose
+CSV and spreadsheet files for that reason.
