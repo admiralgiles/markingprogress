@@ -144,6 +144,15 @@ This matters for `dropHighLow`. Dropping the high and low *per criterion*
 would drop a different judge on every line, which is not what "drop the
 harshest judge" means. It also matches the existing spreadsheet.
 
+### A judge may not mark their own Group
+
+Where the judging is staffed by the competing Groups, one judge per Group,
+a judge is never offered a team from their own Group, and standing down is
+not counted as a missing mark.
+
+Set up by giving judges and teams a Group. If neither has one, the rule does
+not apply and nothing changes.
+
 ### Missing and partial marks
 
 Two different problems, both surfaced rather than hidden:
@@ -154,6 +163,17 @@ Two different problems, both surfaced rather than hidden:
 - **A judge marked some criteria but not all.** Their slot total is not
   comparable with a judge who marked everything, so averaging the two without
   saying so quietly under-scores that team. Flagged separately.
+
+### Summed marks have to be comparable
+
+Under `average`, a judge who forgets to mark barely matters. Under `sum` it
+costs that team roughly a whole judge's worth of marks, and nothing on screen
+would say so. In the 2026 Cub Challenge one forgotten section was worth 112
+points against a 49 point gap for first place.
+
+So when a competition sums, the app counts how many judges have marked each
+team and refuses to treat the totals as comparable when that count varies.
+See [COMPETITION-TYPES.md](COMPETITION-TYPES.md).
 
 Full precision is kept throughout and rounding happens only on screen.
 Rounding each slot before adding them shifts the total, and with 51 marks
