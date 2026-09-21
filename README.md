@@ -15,8 +15,19 @@ Working, with 114 tests: setup, judge marking, results, and the scoring
 underneath. Checked against the real 2026 sheets for three different
 competitions, reproducing their category totals and results tables.
 
-Runs locally. Not hosted anywhere yet, and the database is still a stand-in,
-so marks live on the device only.
+The database is still a stand-in, so marks live on the device they were typed
+into and are not shared between iPads yet.
+
+## Putting it online
+
+A workflow builds and publishes the app on every push. It needs Pages turned
+on once, by hand:
+
+**Settings → Pages → Build and deployment → Source → GitHub Actions**
+
+After that click, push anything and it deploys to
+`https://admiralgiles.github.io/markingprogress/`. A workflow token cannot
+enable Pages itself, which is why this one step is manual.
 
 - [docs/DESIGN.md](docs/DESIGN.md) covers how it works and why
 - [docs/SPREADSHEET.md](docs/SPREADSHEET.md) defines the criteria CSV

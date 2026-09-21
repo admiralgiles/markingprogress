@@ -1,8 +1,13 @@
 name: Deploy to GitHub Pages
 
 # Builds the app and publishes it, so there is a URL judges can open on a
-# phone. `enablement: true` below turns Pages on the first time this runs, so
-# nobody has to go digging in repository settings.
+# phone.
+#
+# One-time setup, which has to be done by hand: Settings -> Pages -> Build and
+# deployment -> Source -> GitHub Actions. A workflow token cannot turn Pages
+# on itself (it gets "Resource not accessible by integration"), because that
+# is a repository administration permission no automation is granted.
+# Everything after that click is automatic.
 
 on:
   push:
@@ -40,8 +45,6 @@ jobs:
       - run: npm run build
 
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
