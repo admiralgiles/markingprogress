@@ -57,8 +57,11 @@ The maxima add up: 45 + 600 + 500 + 3455 + 1200 + 2700 = 8500.
 ### Programme bases
 
 Six bases at 450 each: Backwoods, Pioneering, First Aid, Orienteering,
-Water, Fire. These arrive as one number per base per team rather than as
-individual judges' marks.
+Water, Fire. In the spreadsheet these arrive as one number per base per team
+rather than as individual judges' marks.
+
+In the app, base staff mark on the day like any other judge, with simpler
+criteria than a full site inspection. The criteria still need supplying.
 
 ## Judges
 
@@ -86,14 +89,32 @@ Two scores are worked out from marks already counted elsewhere. They decide
 awards and are deliberately **not** added to the overall 8500, so there is no
 double counting.
 
-| Award | Worked out from |
-|---|---|
-| Test Meal | Cooking and Eating: Sat Evening + Sun Evening |
-| Environmental | Specific waste and bin items from both Cooking and Eating and Campcraft, summed per judge, then averaged |
+| Award | Worked out from | Max |
+|---|---|---|
+| Test Meal | Cooking and Eating: Sat Evening + Sun Evening | 680 |
+| Environmental | Named waste and bin items from both Cooking and Eating and Campcraft, summed per judge, then averaged | 235 |
 
 Environmental is the more awkward of the two. It pulls named items out of two
 different sections, each marked by that section's own judges, sums them per
 judge, and then averages across judges.
+
+### Environmental, as agreed for the app
+
+The 2026 spreadsheet counted 200 marks. Two criteria that were left out have
+now been brought in, taking it to 235.
+
+| Section | Slot | Criteria | Max |
+|---|---|---|---|
+| Campcraft | Sat Evening | bins provided, bins used correctly | 20 |
+| Campcraft | Sun Afternoon | waste segregation, bins used, waste water fit for purpose, waste water in use, sustainable initiative | 150 |
+| Campcraft | Sun Afternoon | site free from litter **(added)** | 15 |
+| Campcraft | Mon Final Inspection | site clean and free of rubbish **(added)** | 20 |
+| Cooking and Eating | Sat Evening | rubbish and food waste disposed of correctly | 15 |
+| Cooking and Eating | Sun Evening | rubbish and food waste disposed of correctly | 15 |
+| | | **Total** | **235** |
+
+These marks still count inside Campcraft and Cooking and Eating as normal.
+The award is a second view of them, never added to the 8500.
 
 ## Other awards decided by hand
 

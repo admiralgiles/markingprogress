@@ -110,38 +110,95 @@ afterwards be shown exactly where their marks went.
 
 ## Combining several judges' marks
 
-Set **per category**, because it varies between competitions and between
-sections of the same competition.
+**Asked at competition setup, per category.** All five rules are supported,
+because it varies between competitions and between categories of the same
+competition. Nothing is hard-coded.
 
 | Rule | What happens |
 |---|---|
-| `Average` | Mean of the judges who actually marked it. What the current sheet does. |
-| `Drop high and low` | Discard the highest and lowest, average the rest. Needs at least three judges. |
-| `Sum` | All judges' marks added together. |
-| `Single` | One judge only. Their mark is the mark. |
-| `Separate` | All marks shown side by side. A person decides the final score. |
+| `average` | Mean of the judges who actually marked it. What the current sheet does. |
+| `dropHighLow` | Discard the highest and lowest, average the rest. |
+| `sum` | All judges' marks added together. |
+| `single` | One judge only. |
+| `separate` | All marks shown side by side. A person decides. |
 
-`Average` takes the mean of whoever submitted, not of a fixed three. Judges
-routinely miss marks, and the current spreadsheet already behaves this way.
+Decisions built into these:
 
-Where a judge has not marked a team at all, the app knows, and can say so
-rather than quietly averaging two marks where three were expected.
+- **`average` uses whoever submitted**, not a fixed three. Judges routinely
+  miss marks and the spreadsheet already behaves this way.
+- **`dropHighLow` needs three marks.** With two, dropping a high and a low
+  leaves nothing, so it falls back to a plain average and flags that it did.
+  With exactly three it keeps the middle mark.
+- **`single` refuses to guess.** If two judges have both marked something set
+  up for one judge, no score is produced. Averaging would invent a number
+  nobody gave. Both marks are kept for the organiser to settle.
+- **`separate` produces no automatic score** and hands every mark back.
+- **A mark of zero is a real mark.** Only an absent mark counts as missing.
+
+### Combined at judge-total level
+
+Each judge's marks for a slot are added up first, then the judges' totals are
+combined. Not the other way round.
+
+This matters for `dropHighLow`. Dropping the high and low *per criterion*
+would drop a different judge on every line, which is not what "drop the
+harshest judge" means. It also matches the existing spreadsheet.
+
+### Missing and partial marks
+
+Two different problems, both surfaced rather than hidden:
+
+- **A judge marked nothing for a team.** The score still counts, using the
+  judges who did mark, and the admin screen names who is missing so they can
+  be chased before results are announced.
+- **A judge marked some criteria but not all.** Their slot total is not
+  comparable with a judge who marked everything, so averaging the two without
+  saying so quietly under-scores that team. Flagged separately.
+
+Full precision is kept throughout and rounding happens only on screen.
+Rounding each slot before adding them shifts the total, and with 51 marks
+between fourth and fifth place out of 8500 that is not worth introducing.
 
 ## Awards worked out from marks already counted
 
 Some awards are derived from criteria that are already inside another
 category, and must **not** be added to the overall total again.
 
-| Award | Built from |
-|---|---|
-| Test Meal | Cooking and Eating: Sat Evening + Sun Evening |
-| Environmental | Named waste and bin criteria from both Cooking and Eating and Campcraft |
+| Award | Built from | Max |
+|---|---|---|
+| Test Meal | Cooking and Eating: Sat Evening + Sun Evening | 680 |
+| Environmental | Named waste and bin criteria from Cooking and Eating and Campcraft | 235 |
 
 So a derived award is a named list of criteria plus a rule, and a flag saying
-it does not count towards the overall score.
+it does not count towards the overall score. An award pointing at a criterion
+that does not exist is refused rather than quietly scoring low.
+
+The Environmental award now includes the two litter criteria that the
+spreadsheet left out, taking it from 200 to 235. See
+[EVENT-STRUCTURE.md](EVENT-STRUCTURE.md).
 
 Best New Scout, Best Scout, Best Patrol Leader and the Camp Chief Award are
 judgement calls, not calculations. They need a place to record a winner.
+
+## Programme bases
+
+The six bases carry 2700 marks, about a third of the competition. Base staff
+mark on the app like any other judge, with simpler criteria than a full site
+inspection.
+
+No special handling is needed: a base is a category with its own criteria in
+the upload, so `Category` is `Programme` and `Slot` is the base name. The
+criteria themselves still have to be supplied.
+
+## Results
+
+Places, gaps and ordinals are calculated. In the existing spreadsheet that
+table is typed by hand, which is how it ended up reading `1nd`, `2rd` and
+`3th`.
+
+Teams on the same total share a place and the next place skips, so two teams
+first means the next is third. A team with nothing marked yet is listed as
+not scored rather than ranked on zero.
 
 ## Where the data lives
 

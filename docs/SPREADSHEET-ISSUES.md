@@ -104,7 +104,7 @@ turns out to be the team's Check In score, so every entry reads like
   elsewhere and are correctly kept out of the 8500 total. Worth writing down,
   because it would be an easy thing to break by adding them in.
 
-## 5. An open question on the Environmental award
+## 5. The Environmental award: settled
 
 Environmental currently draws on four groups of criteria:
 
@@ -116,12 +116,12 @@ Environmental currently draws on four groups of criteria:
 | Cooking and Eating | Sun Evening | rubbish and food waste disposed of correctly | 15 |
 | | | **Total** | **200** |
 
-Two other criteria look environmental but are not included:
+Two other criteria looked environmental but were not included:
 
 - Campcraft, Sun Afternoon: `Is the site free from litter?` (15)
 - Campcraft, Mon Final Inspection: `Is the site clean & free of rubbish and scorching?` (20)
 
-That may well be deliberate. It needs deciding rather than inheriting.
+**Decided: both are now counted**, taking the award from 200 to 235.
 
 ## What the app changes
 
