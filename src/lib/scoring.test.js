@@ -10,6 +10,7 @@ import {
   scoreCategory,
   scoreSlot,
   validateMarkEntry,
+  DEFAULT_STREAM,
 } from './scoring.js'
 
 const marks = (...values) =>
@@ -358,4 +359,171 @@ test('awarding no bonus needs no explanation', () => {
 test('an ordinary criterion needs no reason', () => {
   const r = validateMarkEntry({ criterion: 'x', maxMarks: 10 }, { value: 8 })
   assert.equal(r.ok, true)
+})
+
+// ---------------------------------------------- streams within one slot
+
+// Phoenix Campcraft: every sheet is split by colour. Two judges mark the
+// yellow blocks, two different judges mark the green, each independently,
+// and the two colour scores add up to the sheet total.
+const YELLOW = [
+  { id: 'y1', maxMarks: 100, stream: 'Yellow' },
+  { id: 'y2', maxMarks: 145, stream: 'Yellow' }, // 245 yellow
+]
+const GREEN = [
+  { id: 'g1', maxMarks: 140, stream: 'Green' },
+  { id: 'g2', maxMarks: 110, stream: 'Green' }, // 250 green
+]
+const SPLIT_SHEET = [...YELLOW, ...GREEN] // 495, as the real sheet totals
+const BY_STREAM = {
+  Yellow: ['Judge A', 'Judge B'],
+  Green: ['Judge C', 'Judge D'],
+}
+
+test('a split sheet adds the colour scores rather than averaging them', () => {
+  const r = scoreSlot({
+    criteria: SPLIT_SHEET,
+    marksByJudge: {
+      'Judge A': { y1: 90, y2: 130 }, // 220
+      'Judge B': { y1: 80, y2: 120 }, // 200  -> yellow average 210
+      'Judge C': { g1: 130, g2: 100 }, // 230
+      'Judge D': { g1: 120, g2: 90 }, // 210  -> green average 220
+    },
+    rule: COMBINE_RULES.AVERAGE,
+    judgesByStream: BY_STREAM,
+  })
+
+  assert.equal(r.maxMarks, 495)
+  assert.equal(r.streamsTotal, 2)
+  assert.equal(r.streamsScored, 2)
+
+  const yellow = r.streams.find((s) => s.name === 'Yellow')
+  const green = r.streams.find((s) => s.name === 'Green')
+  assert.equal(yellow.value, 210)
+  assert.equal(yellow.maxMarks, 245)
+  assert.equal(green.value, 220)
+  assert.equal(green.maxMarks, 250)
+
+  assert.equal(r.value, 430, 'yellow 210 plus green 220')
+  assert.deepEqual(r.flags, [])
+})
+
+test('a judge marking only their own colour is not flagged as half done', () => {
+  // The whole point. Judge A marks yellow and nothing else. That is their
+  // job finished, not a gap.
+  const r = scoreSlot({
+    criteria: SPLIT_SHEET,
+    marksByJudge: {
+      'Judge A': { y1: 90, y2: 130 },
+      'Judge B': { y1: 90, y2: 130 },
+      'Judge C': { g1: 130, g2: 100 },
+      'Judge D': { g1: 130, g2: 100 },
+    },
+    rule: COMBINE_RULES.AVERAGE,
+    judgesByStream: BY_STREAM,
+  })
+  assert.ok(
+    !r.flags.includes(FLAGS.PARTIAL_JUDGE),
+    'marking only your own colour is complete',
+  )
+  assert.ok(!r.flags.includes(FLAGS.INCOMPLETE))
+  assert.equal(r.value, 450)
+})
+
+test('a judge missing a criterion inside their own colour is still flagged', () => {
+  const r = scoreSlot({
+    criteria: SPLIT_SHEET,
+    marksByJudge: {
+      'Judge A': { y1: 90 }, // y2 skipped: a real gap
+      'Judge B': { y1: 90, y2: 130 },
+      'Judge C': { g1: 130, g2: 100 },
+      'Judge D': { g1: 130, g2: 100 },
+    },
+    rule: COMBINE_RULES.AVERAGE,
+    judgesByStream: BY_STREAM,
+  })
+  assert.ok(r.flags.includes(FLAGS.PARTIAL_JUDGE))
+})
+
+test('a colour nobody has marked yet is named, and the rest still scores', () => {
+  const r = scoreSlot({
+    criteria: SPLIT_SHEET,
+    marksByJudge: {
+      'Judge A': { y1: 90, y2: 130 },
+      'Judge B': { y1: 90, y2: 130 },
+    },
+    rule: COMBINE_RULES.AVERAGE,
+    judgesByStream: BY_STREAM,
+  })
+  assert.equal(r.streamsScored, 1)
+  assert.equal(r.value, 220, 'yellow only, green not marked')
+  const green = r.streams.find((s) => s.name === 'Green')
+  assert.equal(green.value, null)
+  assert.deepEqual(green.missingJudges, ['Judge C', 'Judge D'])
+  assert.ok(green.flags.includes(FLAGS.NO_MARKS))
+})
+
+test('one judge short in a colour is flagged, and that colour averages the rest', () => {
+  const r = scoreSlot({
+    criteria: SPLIT_SHEET,
+    marksByJudge: {
+      'Judge A': { y1: 90, y2: 130 }, // 220, alone on yellow
+      'Judge C': { g1: 130, g2: 100 },
+      'Judge D': { g1: 120, g2: 90 },
+    },
+    rule: COMBINE_RULES.AVERAGE,
+    judgesByStream: BY_STREAM,
+  })
+  const yellow = r.streams.find((s) => s.name === 'Yellow')
+  assert.equal(yellow.value, 220)
+  assert.deepEqual(yellow.missingJudges, ['Judge B'])
+  assert.ok(r.flags.includes(FLAGS.INCOMPLETE))
+  assert.equal(r.value, 440)
+})
+
+test('a slot with no streams behaves exactly as it did before', () => {
+  const criteria = [
+    { id: 'a', maxMarks: 10 },
+    { id: 'b', maxMarks: 10 },
+  ]
+  const r = scoreSlot({
+    criteria,
+    marksByJudge: {
+      'Judge A': { a: 10, b: 8 }, // 18
+      'Judge B': { a: 8, b: 6 }, // 14
+    },
+    rule: COMBINE_RULES.AVERAGE,
+    expectedJudges: ['Judge A', 'Judge B'],
+  })
+  assert.equal(r.value, 16)
+  assert.equal(r.maxMarks, 20)
+  assert.equal(r.streamsTotal, 1)
+  assert.equal(r.submitted, 2, 'plain fields still readable without streams')
+  assert.deepEqual(r.missingJudges, [])
+})
+
+test('the real Phoenix Saturday Afternoon sheet totals 495', () => {
+  // Yellow: Dining Shelter 140 + Safety, Hygiene & Theme 105 = 245
+  // Green:  Table and Seating 140 + General Site 110        = 250
+  const criteria = [
+    { id: 'dining', maxMarks: 140, stream: 'Yellow' },
+    { id: 'safety', maxMarks: 105, stream: 'Yellow' },
+    { id: 'table', maxMarks: 140, stream: 'Green' },
+    { id: 'general', maxMarks: 110, stream: 'Green' },
+  ]
+  const r = scoreSlot({
+    criteria,
+    marksByJudge: {
+      'Judge A': { dining: 140, safety: 105 },
+      'Judge B': { dining: 140, safety: 105 },
+      'Judge C': { table: 140, general: 110 },
+      'Judge D': { table: 140, general: 110 },
+    },
+    rule: COMBINE_RULES.AVERAGE,
+    judgesByStream: BY_STREAM,
+  })
+  assert.equal(r.maxMarks, 495)
+  assert.equal(r.value, 495, 'full marks everywhere comes to the sheet total')
+  assert.equal(r.streams.find((s) => s.name === 'Yellow').maxMarks, 245)
+  assert.equal(r.streams.find((s) => s.name === 'Green').maxMarks, 250)
 })

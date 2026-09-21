@@ -61,6 +61,7 @@ export function buildCompetition({
       categories,
       teams: teams.map((t, i) => ({ id: `t${i + 1}`, ...t })),
       judges: judges.map((j, i) => ({ id: `j${i + 1}`, ...j })),
+      streams: [...new Set(withIds.map((c) => c.stream).filter(Boolean))],
       combineRules: rules,
       conflictRule,
       createdAt: new Date().toISOString(),
@@ -99,4 +100,25 @@ export function groupsFor(criteria) {
 
 export function maxMarksFor(criteria) {
   return criteria.reduce((t, c) => t + c.maxMarks, 0)
+}
+
+/**
+ * The marking groups present in a set of criteria, in the order they appear.
+ *
+ * An empty array means every judge marks everything. More than one means the
+ * sheet is split, and a judge marks only their own group.
+ */
+export function streamsIn(criteria) {
+  const names = []
+  for (const c of criteria) {
+    const name = c.stream ?? ''
+    if (name && !names.includes(name)) names.push(name)
+  }
+  return names
+}
+
+/** The criteria a given marking group is responsible for. */
+export function criteriaForStream(criteria, stream) {
+  if (!stream) return criteria
+  return criteria.filter((c) => (c.stream ?? '') === stream)
 }

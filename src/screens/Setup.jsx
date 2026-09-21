@@ -15,15 +15,23 @@ function download(filename, text) {
   URL.revokeObjectURL(url)
 }
 
-/** "Kestrel, 142nd" per line, Group optional. */
+/**
+ * One per line: "Name, Group, Marking Group".
+ *
+ * Group is what stops a judge marking their own team. Marking Group is only
+ * needed where a sheet is split by colour between different judges.
+ */
 function parsePeople(text) {
   return String(text ?? '')
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [name, group] = line.split(',').map((s) => s.trim())
-      return group ? { name, group } : { name }
+      const [name, group, stream] = line.split(',').map((s) => s.trim())
+      const person = { name }
+      if (group) person.group = group
+      if (stream) person.stream = stream
+      return person
     })
 }
 
@@ -212,7 +220,9 @@ export default function Setup({ onSaved, onCancel }) {
         <h3>3. Teams and judges</h3>
         <p className="hint">
           One per line, as <code>Name, Group</code>. The Group is what stops a
-          judge marking their own.
+          judge marking their own. For judges you can add a third part,{' '}
+          <code>Name, Group, Yellow</code>, where a sheet is split by colour
+          between different judges.
         </p>
         <div className="grid">
           <label>

@@ -80,6 +80,52 @@ as the marker, not whichever of them held the iPad. Either member's Group
 rules the pair out of marking a team, since the conflict is with the people
 judging rather than with whoever types it in.
 
+## Phoenix: one sheet, two sets of judges
+
+Phoenix Campcraft is a fourth arrangement again, and the one that matters
+most because it breaks an assumption the other two invite.
+
+Every Campcraft sheet is divided by colour. `ODDS MARK YELLOW / EVENS MARK
+GREEN` on the rota is not a presentation choice: **two judges mark the yellow
+blocks, two different judges mark the green ones**, each judge marks
+independently, the pair on each colour is averaged, and the two colour scores
+**add up** to the sheet total.
+
+Taking the real Saturday Afternoon sheet:
+
+| Colour | Blocks | Marks |
+|---|---|---|
+| Yellow | Dining Shelter 140 + Safety, Hygiene & Theme 105 | 245 |
+| Green | Table and Seating 140 + General Site 110 | 250 |
+| | **Sheet total** | **495** |
+
+So four judges per sheet, and the scoring is average **within** a colour and
+sum **across** colours.
+
+### Why this had to change the code
+
+The Shield and the Cub Challenge both invite the assumption that a judge who
+marked some criteria but not all has left a gap, and the app flags exactly
+that, because on those competitions it means a team was quietly under-scored.
+
+On Phoenix that assumption is wrong. A judge who marks only the yellow blocks
+has finished. Flagged naively it would fire on every sheet, every slot, all
+weekend, and the warning would be ignored within an hour.
+
+So completeness is now counted **within a judge's own marking group**, never
+across the whole sheet, and a judge is only offered their own group's
+criteria. Set with the `Marking Group` column in the criteria file, and a
+judge is given their group at setup. Leave both blank and nothing changes.
+
+## Four judging arrangements, not three
+
+| Arrangement | Where | How it scores |
+|---|---|---|
+| Several judges, same criteria | Shield | combined by the category's rule |
+| A judge standing down | Cub Challenge | eligible judges only |
+| A pair, one agreed score | Cub Adventure Skills | the pair is the marker |
+| Two sets of judges, split sheet | Phoenix Campcraft | average within a colour, add across colours |
+
 ## Bonus Points
 
 The Cub sheet has Bonus Points sections worth 50, 15 and 15 with no criteria

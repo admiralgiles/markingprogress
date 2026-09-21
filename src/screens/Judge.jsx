@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { validateMarkEntry } from '../lib/scoring.js'
 import { conflictedJudges, eligibleJudges } from '../lib/judges.js'
-import { groupsFor, maxMarksFor, slotsFor } from '../store/competition.js'
+import {
+  criteriaForStream,
+  groupsFor,
+  maxMarksFor,
+  slotsFor,
+  streamsIn,
+} from '../store/competition.js'
 import { marksFor, saveMark } from '../store/queue.js'
 
 /** Steps a judge walks through after typing the code. */
@@ -10,6 +16,7 @@ const STEP = {
   CATEGORY: 'category',
   NAME: 'name',
   SLOT: 'slot',
+  STREAM: 'stream',
   TEAM: 'team',
   MARKING: 'marking',
 }
@@ -19,6 +26,7 @@ export default function Judge({ competition, onLeave, onMarksChanged }) {
   const [category, setCategory] = useState(null)
   const [judge, setJudge] = useState(null)
   const [slot, setSlot] = useState(null)
+  const [stream, setStream] = useState(null)
   const [team, setTeam] = useState(null)
 
   const slots = useMemo(
@@ -26,9 +34,14 @@ export default function Judge({ competition, onLeave, onMarksChanged }) {
     [competition, category],
   )
 
+  // The criteria this judge is actually responsible for on this sheet.
+  const myCriteria = slot ? criteriaForStream(slot.criteria, stream) : []
+
   const back = () => {
     if (step === STEP.MARKING) return setStep(STEP.TEAM)
-    if (step === STEP.TEAM) return setStep(STEP.SLOT)
+    if (step === STEP.TEAM)
+      return setStep(slot && streamsIn(slot.criteria).length > 1 ? STEP.STREAM : STEP.SLOT)
+    if (step === STEP.STREAM) return setStep(STEP.SLOT)
     if (step === STEP.SLOT) return setStep(STEP.NAME)
     if (step === STEP.NAME) return setStep(STEP.CATEGORY)
     onLeave()
@@ -61,6 +74,7 @@ export default function Judge({ competition, onLeave, onMarksChanged }) {
         {category && <span>{category}</span>}
         {judge && <span>{judge.name}</span>}
         {slot && <span>{slot.name}</span>}
+        {stream && <span>{stream}</span>}
         {team && <span>{team.name}</span>}
       </div>
 
@@ -96,6 +110,28 @@ export default function Judge({ competition, onLeave, onMarksChanged }) {
           render={(s) => `${s.name} — ${maxMarksFor(s.criteria)} marks`}
           onPick={(s) => {
             setSlot(s)
+            const groups = streamsIn(s.criteria)
+            if (groups.length > 1) {
+              setStream(null)
+              setStep(STEP.STREAM)
+            } else {
+              setStream(groups[0] ?? null)
+              setStep(STEP.TEAM)
+            }
+          }}
+        />
+      )}
+
+      {step === STEP.STREAM && (
+        <Pick
+          title="Which part are you marking?"
+          hint="This sheet is split between different judges. You will only see your own part."
+          options={streamsIn(slot.criteria)}
+          render={(name) =>
+            `${name} — ${maxMarksFor(criteriaForStream(slot.criteria, name))} marks`
+          }
+          onPick={(name) => {
+            setStream(name)
             setStep(STEP.TEAM)
           }}
         />
@@ -127,6 +163,8 @@ export default function Judge({ competition, onLeave, onMarksChanged }) {
           judge={judge}
           team={team}
           slot={slot}
+          stream={stream}
+          criteria={myCriteria}
           onDone={() => setStep(STEP.TEAM)}
           onMarksChanged={onMarksChanged}
         />
@@ -155,12 +193,21 @@ function Pick({ title, hint, options, render, onPick }) {
   )
 }
 
-function MarkingSheet({ competition, judge, team, slot, onDone, onMarksChanged }) {
+function MarkingSheet({
+  competition,
+  judge,
+  team,
+  slot,
+  stream,
+  criteria,
+  onDone,
+  onMarksChanged,
+}) {
   const [entries, setEntries] = useState({})
   const [loaded, setLoaded] = useState(false)
   const timers = useRef({})
 
-  const ids = useMemo(() => slot.criteria.map((c) => c.id), [slot])
+  const ids = useMemo(() => criteria.map((c) => c.id), [criteria])
 
   useEffect(() => {
     let cancelled = false
@@ -200,17 +247,17 @@ function MarkingSheet({ competition, judge, team, slot, onDone, onMarksChanged }
     if (typeof next.value === 'number') persist(criterion.id, next)
   }
 
-  const groups = groupsFor(slot.criteria)
-  const max = maxMarksFor(slot.criteria)
-  const awarded = slot.criteria.reduce((t, c) => {
+  const groups = groupsFor(criteria)
+  const max = maxMarksFor(criteria)
+  const awarded = criteria.reduce((t, c) => {
     const v = entries[c.id]?.value
     return t + (typeof v === 'number' ? v : 0)
   }, 0)
-  const marked = slot.criteria.filter(
+  const marked = criteria.filter(
     (c) => typeof entries[c.id]?.value === 'number',
   ).length
 
-  const problems = slot.criteria.flatMap(
+  const problems = criteria.flatMap(
     (c) => validateMarkEntry(c, entries[c.id] ?? {}).errors,
   )
 
@@ -220,7 +267,8 @@ function MarkingSheet({ competition, judge, team, slot, onDone, onMarksChanged }
     <>
       <h2>{team.name}</h2>
       <p className="hint">
-        {slot.name} · marked by {judge.name}
+        {slot.name}
+        {stream ? ` · ${stream}` : ''} · marked by {judge.name}
       </p>
 
       <div className="running">
@@ -228,7 +276,7 @@ function MarkingSheet({ competition, judge, team, slot, onDone, onMarksChanged }
           {awarded} / {max}
         </strong>
         <span>
-          {marked} of {slot.criteria.length} criteria marked
+          {marked} of {criteria.length} criteria marked
         </span>
       </div>
 

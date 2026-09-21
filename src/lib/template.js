@@ -18,13 +18,14 @@ export const COLUMNS = [
   'Criterion',
   'Max Marks',
   'Requires Reason',
+  'Marking Group',
 ]
 
 /**
  * Columns an upload may leave out entirely, so a file written against an
  * earlier version of the template still imports.
  */
-export const OPTIONAL_COLUMNS = ['Requires Reason']
+export const OPTIONAL_COLUMNS = ['Requires Reason', 'Marking Group']
 
 const YES = new Set(['yes', 'y', 'true', '1'])
 const NO = new Set(['', 'no', 'n', 'false', '0'])
@@ -81,12 +82,20 @@ export function buildTemplateCsv({
     'Requires   yes or no. Put yes where the judge must write a reason for the',
     'Reason     marks they give, such as bonus points with no set criteria.',
     '           Leave blank for no.',
+    'Marking    Only needed where one sheet is split between different sets of',
+    'Group      judges, e.g. Yellow and Green. Judges marking Yellow see only',
+    '           the Yellow rows. The groups add up to the sheet total.',
+    '           Leave blank when every judge marks everything.',
     '',
     'Example of a filled-in row:',
-    `${cats[0].name},${days[0].name},${days[0].date},Evening,Tentage,Are all pegs and poles correct?,10,no`,
+    `${cats[0].name},${days[0].name},${days[0].date},Evening,Tentage,Are all pegs and poles correct?,10,no,`,
     '',
     'Bonus points, where the judge decides and must say why:',
-    `${cats[0].name},${days[0].name},${days[0].date},Evening,Bonus Points,Bonus marks awarded,50,yes`,
+    `${cats[0].name},${days[0].name},${days[0].date},Evening,Bonus Points,Bonus marks awarded,50,yes,`,
+    '',
+    'A sheet split by colour between two sets of judges:',
+    `${cats[0].name},${days[0].name},${days[0].date},Evening,Dining Shelter,Are the sides pulled taut?,15,no,Yellow`,
+    `${cats[0].name},${days[0].name},${days[0].date},Evening,Table and Seating,Is the table top secured?,20,no,Green`,
     '',
     'Delete any rows below for a category that is not running that day.',
     'Lines starting with # are ignored when you upload this back.',
@@ -203,6 +212,7 @@ export function parseTemplateCsv(text) {
       criterion,
       maxMarks,
       requiresReason,
+      stream: get('Marking Group'),
     }
 
     const key = [entry.category, entry.day, entry.slot, entry.group, entry.criterion]

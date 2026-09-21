@@ -144,6 +144,20 @@ This matters for `dropHighLow`. Dropping the high and low *per criterion*
 would drop a different judge on every line, which is not what "drop the
 harshest judge" means. It also matches the existing spreadsheet.
 
+### A sheet can be split between different sets of judges
+
+Where a sheet is divided into marking groups, a judge marks only their own
+group, the judges on a group are combined by the category's rule, and the
+groups add together to make the sheet total.
+
+A judge who has marked their whole group is **finished**, not half done. This
+is the one place where the obvious reading of the data is wrong: on Phoenix
+every judge marks about half of every sheet by design, so treating that as a
+gap would put a warning on every sheet all weekend.
+
+Set with the `Marking Group` column in the criteria file. Leave it blank and
+every judge marks everything, which is how the other competitions work.
+
 ### A judge may not mark their own Group
 
 Where the judging is staffed by the competing Groups, one judge per Group,

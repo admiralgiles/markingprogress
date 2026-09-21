@@ -178,36 +178,108 @@ export function judgeSlotTotal(criteria, marks) {
   }
 }
 
+/** A criterion with no stream set belongs to the one unnamed stream. */
+export const DEFAULT_STREAM = ''
+
 /**
  * Score one slot for one team.
  *
+ * A slot can be divided into **streams**: named blocks of criteria, each
+ * marked by its own set of judges. Phoenix Campcraft works this way. Every
+ * sheet is split by colour, two judges mark the yellow blocks, two different
+ * judges mark the green ones, each judge marks independently, and the two
+ * colour scores add up to the sheet total.
+ *
+ * So within a stream the judges are combined by the usual rule, and across
+ * streams the results are added. A slot with no streams is just the one
+ * unnamed stream, which is why the ordinary case needs no special handling.
+ *
+ * This is also why a judge marking only the yellow blocks must not be
+ * flagged as having marked "some but not all". Within their own stream they
+ * are finished. Completeness is per stream, never across the whole slot.
+ *
  * @param {object} args
- * @param {Array<{id: string, maxMarks: number}>} args.criteria
+ * @param {Array<{id: string, maxMarks: number, stream?: string}>} args.criteria
  * @param {Object<string, Object<string, number>>} args.marksByJudge
  * @param {string} args.rule
- * @param {string[]} [args.expectedJudges]
+ * @param {string[]} [args.expectedJudges] when the slot has no streams
+ * @param {Object<string, string[]>} [args.judgesByStream] who marks each stream
  */
-export function scoreSlot({ criteria, marksByJudge, rule, expectedJudges }) {
-  const judges = expectedJudges ?? Object.keys(marksByJudge ?? {})
-  const perJudge = []
-  const flags = []
-
-  for (const judge of Object.keys(marksByJudge ?? {})) {
-    const t = judgeSlotTotal(criteria, marksByJudge[judge])
-    perJudge.push({ judge, ...t })
-    if (t.partial) flags.push(FLAGS.PARTIAL_JUDGE)
+export function scoreSlot({
+  criteria,
+  marksByJudge,
+  rule,
+  expectedJudges,
+  judgesByStream,
+}) {
+  const marks = marksByJudge ?? {}
+  const streamNames = []
+  for (const c of criteria) {
+    const name = c.stream ?? DEFAULT_STREAM
+    if (!streamNames.includes(name)) streamNames.push(name)
   }
 
-  const result = combine(
-    perJudge.map((p) => ({ judge: p.judge, value: p.value })),
-    rule,
-    { expectedJudges: judges },
-  )
+  const streams = []
+  for (const name of streamNames) {
+    const streamCriteria = criteria.filter(
+      (c) => (c.stream ?? DEFAULT_STREAM) === name,
+    )
+
+    // Who was meant to mark this stream. Falling back to the slot-wide list
+    // keeps a competition without streams behaving exactly as before.
+    const expected =
+      judgesByStream?.[name] ?? expectedJudges ?? Object.keys(marks)
+
+    const perJudge = []
+    const streamFlags = []
+
+    for (const judge of Object.keys(marks)) {
+      // A judge only counts towards a stream they were assigned to. Without
+      // this, a yellow judge would look like a green judge who marked
+      // nothing.
+      if (judgesByStream && !expected.includes(judge)) continue
+
+      const t = judgeSlotTotal(streamCriteria, marks[judge])
+      if (judgesByStream && t.value === null) continue
+      perJudge.push({ judge, ...t })
+      if (t.partial) streamFlags.push(FLAGS.PARTIAL_JUDGE)
+    }
+
+    const result = combine(
+      perJudge.map((p) => ({ judge: p.judge, value: p.value })),
+      rule,
+      { expectedJudges: expected },
+    )
+
+    streams.push({
+      ...result,
+      name,
+      perJudge,
+      flags: [...new Set([...result.flags, ...streamFlags])],
+      maxMarks: streamCriteria.reduce((t, c) => t + c.maxMarks, 0),
+    })
+  }
+
+  const scored = streams.filter((s) => typeof s.value === 'number')
+  const singleStream = streams.length === 1 ? streams[0] : null
 
   return {
-    ...result,
-    flags: [...new Set([...result.flags, ...flags])],
-    perJudge,
+    // Streams add together. A sheet split 245 yellow and 250 green is a
+    // 495 mark sheet, not a 495 mark average.
+    value: scored.length > 0 ? scored.reduce((t, s) => t + s.value, 0) : null,
+    rule,
+    streams,
+    streamsScored: scored.length,
+    streamsTotal: streams.length,
+    // The plain fields stay meaningful for a slot with no streams, so
+    // nothing downstream has to know about streams to read a simple slot.
+    submitted: singleStream ? singleStream.submitted : null,
+    expected: singleStream ? singleStream.expected : null,
+    missingJudges: singleStream ? singleStream.missingJudges : [],
+    used: singleStream ? singleStream.used : [],
+    dropped: singleStream ? singleStream.dropped : [],
+    perJudge: singleStream ? singleStream.perJudge : streams.flatMap((s) => s.perJudge),
+    flags: [...new Set(streams.flatMap((s) => s.flags))],
     maxMarks: criteria.reduce((t, c) => t + c.maxMarks, 0),
   }
 }

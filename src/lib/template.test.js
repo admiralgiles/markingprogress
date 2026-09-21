@@ -119,6 +119,7 @@ test('a filled-in template is read back with its marks', () => {
     criterion: 'Are all pegs and poles correct?',
     maxMarks: 10,
     requiresReason: false,
+    stream: '',
   })
   assert.equal(criteria[2].slot, '')
 })
@@ -316,6 +317,32 @@ test('the export writes the Requires Reason column', () => {
   })
   const rows = fromCsv(csv)
   assert.deepEqual(rows[0], COLUMNS)
-  assert.equal(rows[0].length, 8)
-  assert.equal(rows[1].length, 8)
+  assert.equal(rows[0].length, 9)
+  assert.equal(rows[1].length, 9)
+})
+
+test('Marking Group is read, and blank means everyone marks everything', () => {
+  const csv = [
+    COLUMNS.join(','),
+    'Campcraft,Saturday,2026-05-30,Evening,Dining Shelter,Are the sides taut?,15,no,Yellow',
+    'Campcraft,Saturday,2026-05-30,Evening,Table and Seating,Is the top secured?,20,no,Green',
+    'Campcraft,Saturday,2026-05-30,Evening,Tentage,Are pegs correct?,10,no,',
+  ].join('\n')
+  const { criteria, errors } = parseTemplateCsv(csv)
+  assert.deepEqual(errors, [])
+  assert.deepEqual(
+    criteria.map((c) => c.stream),
+    ['Yellow', 'Green', ''],
+  )
+})
+
+test('a file written before Marking Group existed still imports', () => {
+  const csv = [
+    'Category,Day,Date,Slot,Group,Criterion,Max Marks',
+    'Campcraft,Saturday,2026-05-30,Evening,Tentage,Are pegs correct?,10',
+  ].join('\n')
+  const { criteria, errors } = parseTemplateCsv(csv)
+  assert.deepEqual(errors, [])
+  assert.equal(criteria[0].stream, '')
+  assert.equal(criteria[0].requiresReason, false)
 })

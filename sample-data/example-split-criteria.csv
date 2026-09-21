@@ -1,0 +1,34 @@
+# MarkingProgress: example of a sheet split between two sets of judges
+#
+# Phoenix Campcraft works this way. Every sheet is divided by colour. Two
+# judges mark the Yellow sections, two different judges mark the Green ones,
+# each marks independently, and the two colour scores add up to the sheet
+# total.
+#
+# Yellow: 140 + 105 = 245
+# Green:  140 + 110 = 250
+# Sheet:  495
+#
+# Invented criteria, written to show the shape of the file.
+#
+# Lines starting with # are ignored on upload.
+Category,Day,Date,Slot,Group,Criterion,Max Marks,Requires Reason,Marking Group
+Campcraft,Saturday,2026-05-30,Afternoon,Dining Shelter,Are the poles used correctly?,20,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Dining Shelter,Are the pegs in line and at the correct angle?,20,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Dining Shelter,Are the guy lines used correctly?,25,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Dining Shelter,Are the sides pulled taut?,25,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Dining Shelter,Is it safe to move around underneath?,50,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Safety and Hygiene,Is there a clearly identifiable fire point?,20,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Safety and Hygiene,Is the fire point accessible?,20,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Safety and Hygiene,Is the site free from litter?,25,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Safety and Hygiene,Has the theme been incorporated into the site?,40,no,Yellow
+Campcraft,Saturday,2026-05-30,Afternoon,Table and Seating,Is the table big enough for a patrol of eight?,20,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,Table and Seating,Are the table and seating at the correct heights?,20,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,Table and Seating,Is the table top secured?,20,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,Table and Seating,Is the construction safe and sturdy?,40,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,Table and Seating,Are lashings tidy tight and correct?,40,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,General Site,Are the boundaries taut?,20,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,General Site,Are the correct knots used for the boundaries?,20,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,General Site,Have three segregations of waste been catered for?,30,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,General Site,Are the bins being used correctly?,20,no,Green
+Campcraft,Saturday,2026-05-30,Afternoon,General Site,Does the layout let the patrol function easily?,20,no,Green

@@ -11,6 +11,7 @@ import { SYNC_STATE, startAutoSync } from './store/queue.js'
 import { send, stubTransport } from './transport.js'
 
 import exampleCriteria from '../sample-data/example-criteria.csv?raw'
+import splitCriteria from '../sample-data/example-split-criteria.csv?raw'
 
 const VIEW = { HOME: 'home', SETUP: 'setup', JUDGE: 'judge', RESULTS: 'results' }
 
@@ -34,6 +35,32 @@ function exampleCompetition() {
     ],
     combineRules: { Campcraft: COMBINE_RULES.AVERAGE },
     conflictRule: true,
+  })
+}
+
+/**
+ * A sheet split by colour, as Phoenix Campcraft is marked: two judges on the
+ * Yellow blocks, two on the Green, averaged within each colour and added
+ * across them.
+ */
+function splitCompetition() {
+  return buildCompetition({
+    name: 'Example Split Sheet 2026',
+    code: 'SPLIT26',
+    criteriaCsv: splitCriteria,
+    teams: [
+      { name: 'Site 1' },
+      { name: 'Site 2' },
+      { name: 'Site 3' },
+    ],
+    judges: [
+      { name: 'Yellow One', stream: 'Yellow' },
+      { name: 'Yellow Two', stream: 'Yellow' },
+      { name: 'Green One', stream: 'Green' },
+      { name: 'Green Two', stream: 'Green' },
+    ],
+    combineRules: { Campcraft: COMBINE_RULES.AVERAGE },
+    conflictRule: false,
   })
 }
 
@@ -72,8 +99,8 @@ export default function App() {
     return stop
   }, [refreshMarks])
 
-  const loadExample = async () => {
-    const { competition: c, errors } = exampleCompetition()
+  const load = async (build) => {
+    const { competition: c, errors } = build()
     if (errors.length > 0) {
       setCodeError(errors.join('; '))
       return
@@ -166,8 +193,11 @@ export default function App() {
                   >
                     Set up a competition
                   </button>
-                  <button type="button" onClick={loadExample}>
+                  <button type="button" onClick={() => load(exampleCompetition)}>
                     Load the example
+                  </button>
+                  <button type="button" onClick={() => load(splitCompetition)}>
+                    Load the split-sheet example
                   </button>
                 </div>
                 {codeError && <p className="error">{codeError}</p>}
@@ -181,6 +211,8 @@ export default function App() {
                   judges
                   {competition.conflictRule &&
                     ' · a judge may not mark their own Group'}
+                  {competition.streams?.length > 1 &&
+                    ` · split between ${competition.streams.join(' and ')}`}
                 </p>
 
                 <section className="card">
