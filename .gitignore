@@ -24,6 +24,7 @@ exports/
 *.sqlite
 *.db
 !sample-data/*.csv
+!sample-data/*.xlsx
 
 # Logs
 *.log
