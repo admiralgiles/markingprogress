@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Competition marking sheets and scoring",
+  "engines": {
+    "node": ">=20.19"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/admiralgiles/markingprogress.git"
