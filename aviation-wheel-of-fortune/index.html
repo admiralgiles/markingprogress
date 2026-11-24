@@ -193,7 +193,13 @@ const AREAS = [
   'The planets of the Solar System',
   'Leave No Trace and FOD',
   'Scale model aircraft',
-  'Hot-air balloons'
+  'Hot-air balloons',
+  'Flight basics: the four forces',
+  'Weather and flying',
+  'Gliders, parachutes and model flight',
+  'Aircraft types and airfields',
+  'Radio and airfield safety',
+  'Airport operations'
 ];
 const LEVELS = ['easy', 'medium', 'hard'];
 
@@ -266,7 +272,58 @@ const BUILTIN_QUESTIONS = [
   {area:10, level:'medium', q:'How does the pilot make the balloon climb?', a:'The pilot fires the burner to heat the air in the envelope more, making it less dense and increasing lift.'},
   {area:10, level:'medium', q:'How does the pilot bring the balloon down?', a:'Let the air cool by reducing burner use, and/or pull the deflation (parachute) valve at the top to let hot air out.'},
   {area:10, level:'hard', q:'A balloon has no rudder or engine to steer. How do pilots control where it goes?', a:'They change altitude to find a layer of wind blowing in the direction they want. A balloon travels with the wind, so it is the wind direction at each height that matters.'},
-  {area:10, level:'hard', q:'Why does a hot-air balloon feel still, even when it is moving quickly with the wind?', a:'The balloon moves at the same speed as the air around it, so there is no wind blowing past it to feel.'}
+  {area:10, level:'hard', q:'Why does a hot-air balloon feel still, even when it is moving quickly with the wind?', a:'The balloon moves at the same speed as the air around it, so there is no wind blowing past it to feel.'},
+
+  /* 11. Flight basics: the four forces (general aviation, not checked against the Irish syllabus) */
+  {area:11, level:'easy', q:"Name the four forces that act on an aeroplane in flight.", a:"Lift, weight (gravity), thrust and drag."},
+  {area:11, level:'easy', q:"Which force pulls an aircraft towards the ground?", a:"Weight, caused by gravity."},
+  {area:11, level:'medium', q:"What provides the thrust that moves an aeroplane forward?", a:"The engine and propeller (or jet engines), which push or pull the aircraft through the air."},
+  {area:11, level:'medium', q:"What is drag?", a:"The air resistance that opposes an aircraft moving through the air."},
+  {area:11, level:'medium', q:"In which direction does lift act?", a:"Upwards, at right angles to the airflow over the wing."},
+  {area:11, level:'hard', q:"In steady, level flight, how do lift and weight compare, and how do thrust and drag compare?", a:"Lift equals weight, and thrust equals drag. The forces are balanced, so the aircraft keeps its height and speed."},
+  {area:11, level:'hard', q:"Why does an aeroplane need forward speed to create lift?", a:"Air must flow over and under the wings. More speed means more air moving over the wings, which produces more lift."},
+
+  /* 12. Weather and flying */
+  {area:12, level:'easy', q:"Why do pilots check the weather before flying?", a:"To check wind, visibility, cloud and rain, because weather can make a flight unsafe."},
+  {area:12, level:'easy', q:"What is a crosswind?", a:"Wind that blows across the direction of the runway rather than along it."},
+  {area:12, level:'medium', q:"Why is a headwind helpful for take-off?", a:"It increases the airflow over the wings at a lower ground speed, so the aircraft lifts off in a shorter distance."},
+  {area:12, level:'medium', q:"What does visibility mean in aviation?", a:"How far a pilot can see clearly ahead, measured as a distance."},
+  {area:12, level:'medium', q:"What is a cloud base?", a:"The height above the ground of the lowest part of a cloud."},
+  {area:12, level:'hard', q:"What is icing, and why is it dangerous?", a:"Ice forming on the wings or control surfaces. It changes their shape, adds weight and reduces lift, which can lead to a stall."},
+
+  /* 13. Gliders, parachutes and model flight */
+  {area:13, level:'easy', q:"How does a glider stay in the air without an engine?", a:"It uses lift from rising air, such as thermals or air flowing up a hillside, and glides down gently under gravity."},
+  {area:13, level:'easy', q:"Name two ways a glider can be launched.", a:"Winch launch, aerotow (towed by an aircraft), or car launch."},
+  {area:13, level:'medium', q:"What makes a parachute slow down a person who is falling?", a:"The canopy catches the air and creates drag, which slows the descent."},
+  {area:13, level:'medium', q:"What is a thermal?", a:"A column of warm air rising from the ground, which gliders and birds can use to gain height."},
+  {area:13, level:'medium', q:"Why does a model aeroplane need its centre of gravity in the right place?", a:"If it is too far forward, the model is nose-heavy and struggles to climb. If it is too far back, it becomes unstable and hard to control."},
+  {area:13, level:'hard', q:"What is angle of attack?", a:"The angle between the wing and the oncoming air. Increasing it increases lift, up to a point."},
+  {area:13, level:'hard', q:"What is a stall?", a:"When the angle of attack is too high, the airflow separates from the wing and lift drops sharply, whatever the speed."},
+
+  /* 14. Aircraft types and airfields */
+  {area:14, level:'easy', q:"Name a flying machine that has no wings.", a:"A hot-air balloon (or a gas balloon)."},
+  {area:14, level:'easy', q:"What is a runway?", a:"A strip of prepared ground that aircraft use to take off and land."},
+  {area:14, level:'medium', q:"What is the main advantage of a helicopter?", a:"It can take off and land vertically and hover in one place."},
+  {area:14, level:'medium', q:"What is a flight plan?", a:"A filed record of the planned route, altitude, speed, fuel and alternate airfield, shared with air traffic control."},
+  {area:14, level:'hard', q:"Why do many small airfields have no control tower?", a:"Traffic is light, so pilots make their own radio calls to share their positions and intentions."},
+  {area:14, level:'hard', q:"What is an autogyro?", a:"An aircraft with an unpowered rotor that spins in the airflow to give lift, and an engine-driven propeller that provides thrust."},
+
+  /* 15. Radio and airfield safety */
+  {area:15, level:'easy', q:"What does 'Mayday' mean on the radio?", a:"A distress call, used when there is grave and imminent danger."},
+  {area:15, level:'easy', q:"What does 'Pan-Pan' mean on the radio?", a:"An urgency call. There is a problem that needs attention, but it is not an immediate distress."},
+  {area:15, level:'medium', q:"What is a bird strike?", a:"A collision between a bird and an aircraft, which can damage the aircraft or its engines."},
+  {area:15, level:'medium', q:"What is a runway incursion?", a:"Any unauthorised aircraft, vehicle or person on a runway that is in use."},
+  {area:15, level:'medium', q:"Why should you wear high-visibility clothing near aircraft and vehicles?", a:"So that pilots and drivers can see you clearly, especially in poor light."},
+  {area:15, level:'hard', q:"What should you do before crossing an active runway?", a:"Get clearance from air traffic control (or from ground staff at an airfield with no tower), then check both ways and cross only when it is clear."},
+  {area:15, level:'hard', q:"What does 'hold short' mean?", a:"Stop before reaching a runway or marked line, and do not enter it until you have clearance."},
+
+  /* 16. Airport operations */
+  {area:16, level:'easy', q:"What is the main job of an air traffic controller?", a:"To keep aircraft safely separated and to move them efficiently on the ground and in the air."},
+  {area:16, level:'easy', q:"What is the purpose of an aircraft's landing gear?", a:"To support the aircraft on the ground and absorb the impact of landing."},
+  {area:16, level:'medium', q:"What is a taxiway?", a:"A marked path that links runways with the apron, terminal and other parts of the airport."},
+  {area:16, level:'medium', q:"What is an apron?", a:"The area where aircraft park, load, unload and refuel."},
+  {area:16, level:'medium', q:"What does a windsock show a pilot?", a:"The direction and rough strength of the wind at the airfield."},
+  {area:16, level:'hard', q:"What does ATIS stand for, and what does it give pilots?", a:"Automatic Terminal Information Service. It broadcasts current weather, the runway in use and other key information."}
 ];
 
 /* ---------------- Built-in phrases ---------------- */
@@ -329,8 +386,13 @@ function defaultBank() {
 }
 function loadBank() {
   const b = jparse(lsGet(KEY_BANK), null);
-  if (b && Array.isArray(b.questions) && Array.isArray(b.phrases)) return b;
-  return defaultBank();
+  if (!(b && Array.isArray(b.questions) && Array.isArray(b.phrases))) return defaultBank();
+  // Add any built-in questions or phrases that are new since this browser last saved the bank.
+  // Edited or deleted items are not restored, because only missing ids are added.
+  const d = defaultBank();
+  d.questions.forEach(q => { if (!b.questions.some(x => x.id === q.id)) b.questions.push(q); });
+  d.phrases.forEach(p => { if (!b.phrases.some(x => x.id === p.id)) b.phrases.push(p); });
+  return b;
 }
 let BANK = loadBank();
 function saveBank() { lsSet(KEY_BANK, JSON.stringify(BANK)); }
