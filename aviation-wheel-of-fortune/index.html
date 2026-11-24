@@ -199,7 +199,15 @@ const AREAS = [
   'Gliders, parachutes and model flight',
   'Aircraft types and airfields',
   'Radio and airfield safety',
-  'Airport operations'
+  'Airport operations',
+  'Stage 1: flying machines',
+  'Stage 1: airports and aircraft safety',
+  'Stage 1: paper aeroplanes',
+  'Stage 2: parts of an aeroplane',
+  'Stage 2: parachutes',
+  'Stage 2: kites',
+  'Stage 2: first aid and getting help',
+  'Stage 2: safe behaviour at an airport'
 ];
 const LEVELS = ['easy', 'medium', 'hard'];
 
@@ -323,7 +331,61 @@ const BUILTIN_QUESTIONS = [
   {area:16, level:'medium', q:"What is a taxiway?", a:"A marked path that links runways with the apron, terminal and other parts of the airport."},
   {area:16, level:'medium', q:"What is an apron?", a:"The area where aircraft park, load, unload and refuel."},
   {area:16, level:'medium', q:"What does a windsock show a pilot?", a:"The direction and rough strength of the wind at the airfield."},
-  {area:16, level:'hard', q:"What does ATIS stand for, and what does it give pilots?", a:"Automatic Terminal Information Service. It broadcasts current weather, the runway in use and other key information."}
+  {area:16, level:'hard', q:"What does ATIS stand for, and what does it give pilots?", a:"Automatic Terminal Information Service. It broadcasts current weather, the runway in use and other key information."},
+  /* ---- Stage 1 criteria (from the Air Activities tracker) ---- */
+  /* 17. Stage 1: flying machines */
+  {area:17, level:'easy', q:"Name five things that can fly.", a:"Any five of: aeroplane, helicopter, glider, hot-air balloon, airship, kite, drone, bird, rocket, autogyro."},
+  {area:17, level:'easy', q:"Name three different types of flying machine.", a:"Any three of: aeroplane, helicopter, glider, hot-air balloon, airship, autogyro, drone."},
+  {area:17, level:'medium', q:"How does a helicopter stay in the air, compared with an aeroplane?", a:"A helicopter's rotor blades provide lift and thrust, so it can hover and take off vertically. An aeroplane needs its wings moving through the air at forward speed to get lift."},
+  {area:17, level:'medium', q:"How is a glider different from a powered aeroplane?", a:"A glider has no engine. It stays up using lift from rising air, and it comes down gradually."},
+  {area:17, level:'hard', q:"What is the difference between how a hot-air balloon and an airship stay up?", a:"Both are lighter-than-air. A balloon uses heated air in its envelope, and it has no engine, so it drifts with the wind. An airship uses a light gas such as helium and has engines so it can steer."},
+
+  /* 18. Stage 1: airports and aircraft safety */
+  {area:18, level:'easy', q:"Name three main features of an airport that you can see from a model or picture.", a:"Any three of: runway, taxiway, apron, terminal building, control tower."},
+  {area:18, level:'easy', q:"What is the control tower used for?", a:"Air traffic controllers use it to direct aircraft on the ground and in the air near the airport, because it gives them a view of the whole airfield."},
+  {area:18, level:'medium', q:"What is the terminal building for?", a:"Passengers check in, go through security and board their flights there. It is where the passenger side of the airport is."},
+  {area:18, level:'medium', q:"What is an apron?", a:"The area where aircraft park, load, unload and refuel."},
+  {area:18, level:'hard', q:"Why must you stay safe around aircraft even when they are parked?", a:"Engines can start with little warning, propellers and rotors can turn, and aircraft can be moved or pushed back. Stay clear and follow the instructions of staff."},
+  {area:18, level:'hard', q:"How should you behave around aircraft on the ground?", a:"Keep well back, never touch or climb on an aircraft, stay out of the marked areas and follow the instructions of the staff with you."},
+
+  /* 19. Stage 1: paper aeroplanes */
+  {area:19, level:'easy', q:"What do the wings of a paper aeroplane have to do?", a:"Create lift, as air moves past them. Lift is what keeps the aeroplane up."},
+  {area:19, level:'medium', q:"What makes a paper aeroplane climb?", a:"A good throw gives it forward speed, and the wings then create lift. Angling the nose slightly up helps it climb, but too steep and it will stall."},
+  {area:19, level:'medium', q:"How can you make a paper aeroplane turn?", a:"Bend the back edge of one wing up and the other back edge slightly down, the way ailerons work. The aeroplane rolls and turns towards the side with the raised edge."},
+  {area:19, level:'hard', q:"Why does a paper aeroplane drop out of the air when you throw it too steeply?", a:"The angle of attack is too high. The airflow separates from the wings, lift drops, and the aeroplane stalls."},
+
+  /* 20. Stage 2: parts of an aeroplane */
+  {area:20, level:'easy', q:"Name the five main parts of an aeroplane.", a:"Fuselage, wings, tail (tailplane and fin), engine(s) and landing gear."},
+  {area:20, level:'easy', q:"Which part of the aeroplane carries the passengers and cargo?", a:"The fuselage."},
+  {area:20, level:'medium', q:"What does the tail do?", a:"It gives stability and control. The tailplane and elevators control pitch (nose up and down), and the fin and rudder control yaw (nose left and right)."},
+  {area:20, level:'medium', q:"What do the engines do?", a:"They produce thrust, which pushes the aeroplane forward through the air."},
+  {area:20, level:'hard', q:"Apart from supporting the aeroplane on the ground, what else does the landing gear do?", a:"It absorbs the impact of landing, and on many aircraft the wheels have brakes to slow it down on the runway."},
+
+  /* 21. Stage 2: parachutes */
+  {area:21, level:'easy', q:"What are the main parts of a simple parachute you can build?", a:"A canopy (the fabric that catches the air), lines (the string joining the canopy to the load), and a load (such as a small toy or weight)."},
+  {area:21, level:'easy', q:"Why is a parachute's canopy wide?", a:"A wide canopy catches more air, which creates more drag and slows the fall."},
+  {area:21, level:'medium', q:"Why should all the lines be tied to the same point on the load?", a:"It keeps the canopy evenly balanced, so it opens fully and falls straight rather than tilting."},
+  {area:21, level:'medium', q:"How does wind affect a parachute when it is launched?", a:"Wind can carry it sideways, so it lands far from where you aimed, or it can fill and drift. Launch in light wind and check the wind direction first."},
+  {area:21, level:'hard', q:"Why should you test a parachute in a light breeze before trying it in stronger wind?", a:"Strong wind can blow the parachute a long way, make it unstable or cause it to hit people, so you learn how it behaves in light wind first."},
+
+  /* 22. Stage 2: kites */
+  {area:22, level:'easy', q:"What makes a kite fly?", a:"Wind moving past the kite pushes it up, and the string holds it in place."},
+  {area:22, level:'medium', q:"Why should you fly a kite into the wind?", a:"The wind flowing over the kite gives it lift, so it rises. With the wind behind you the kite has no lift."},
+  {area:22, level:'medium', q:"Name a safe place to fly a kite.", a:"An open field or park, clear of trees, roads, power lines, airports and other people."},
+  {area:22, level:'hard', q:"Why must you never fly a kite near power lines or an airport?", a:"A kite or its string can touch power lines and cause electric shock or a power cut, and kites or their lines can get into the path of aircraft."},
+  {area:22, level:'hard', q:"How is a kite's lift different from an aeroplane's?", a:"A kite is held in the wind by its string, and the wind moving past it creates lift. An aeroplane creates lift by moving forward through the air under its own power or glide."},
+
+  /* 23. Stage 2: first aid and getting help */
+  {area:23, level:'easy', q:"What should you do if somebody gets hurt?", a:"Stay calm, make sure the area is safe, tell a leader straight away, and get help from a first aider or adult. Do not move them unless they are in danger."},
+  {area:23, level:'easy', q:"What is the emergency number in Ireland?", a:"112 or 999."},
+  {area:23, level:'medium', q:"Why do you check that an area is safe before helping someone?", a:"So you do not become a casualty yourself, and you do not make the injury worse."},
+  {area:23, level:'medium', q:"What should you do if someone is bleeding badly?", a:"Press firmly on the wound with a clean cloth or dressing, keep them still, and call for help."},
+  {area:23, level:'hard', q:"What is the recovery position used for?", a:"To keep the airway clear when someone is unconscious but breathing, so that they do not choke."},
+
+  /* 24. Stage 2: safe behaviour at an airport */
+  {area:24, level:'easy', q:"Why must you always be with a leader or adult at an airport?", a:"For supervision, safety and permission. Visitors must stay with their group and follow the airport's instructions."},
+  {area:24, level:'medium', q:"Why should you stay behind a safety barrier at a viewing area?", a:"To keep clear of moving aircraft, the noise and the jet blast or propeller wash, which can knock people over or throw debris."},
+  {area:24, level:'hard', q:"What should you do if you are told to move away from an aircraft or a vehicle?", a:"Move away straight away and follow the instructions of the staff. Do not stop to ask questions until you are in a safe place."}
 ];
 
 /* ---------------- Built-in phrases ---------------- */
