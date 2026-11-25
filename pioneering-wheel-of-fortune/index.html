@@ -403,6 +403,7 @@ function pickQuestion(level) {
 
 function stageText() {
   const a = S.patrols[S.active].name;
+  if (S.checking) return 'Checking the phrase. Wait for the reveal.';
   switch (S.stage) {
     case 'idle':
       if (S.finished) return 'Game finished. Start a new game, or go back to the game.';
@@ -444,6 +445,7 @@ function buildPublic() {
     used: Object.assign({}, S.guessed),
     question: (S.question && S.questionShown) ? {text: S.question.q, area: AREAS[S.question.area], level: S.question.level} : null,
     timerEnd: S.timerEnd,
+    checking: S.checking ? {patrol: S.patrols[S.active].name} : null,
     event: S.event,
     progress: total ? shown / total : 0
   };
@@ -515,6 +517,7 @@ function sfx(name, n) {
     case 'round': tone(660, 0, 0.2, 'sine', 0.1); tone(880, 0.18, 0.3, 'sine', 0.1); break;
     case 'final': [392, 523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.16, 0.4, 'triangle', 0.12)); break;
     case 'pass': tone(330, 0, 0.2, 'sine', 0.07); break;
+    case 'tension': for (let k = 0; k < 12; k++) tone(300 + k * 35, k * 0.28, 0.12, 'square', 0.04); break;
   }
 }
 function playEvent(ev) {
@@ -525,6 +528,7 @@ function playEvent(ev) {
     case 'incorrect': case 'wrongsolve': sfx('wrong'); break;
     case 'solve': sfx('solve'); break;
     case 'time': sfx('buzzer'); break;
+    case 'checking': sfx('tension'); break;
     case 'round': sfx('round'); break;
     case 'final': sfx('final'); break;
     case 'pass': sfx('pass'); break;
@@ -632,7 +636,7 @@ function renderScouter() {
   const canStart = (S.stage === 'idle' || S.stage === 'ended') && !S.finished && S.roundNo < S.totalRounds;
   const canPick = (S.stage === 'choose' || S.stage === 'answering') && !!S.phrase;
   const canMark = S.stage === 'answering';
-  const canGuess = S.stage === 'guess';
+  const canGuess = S.stage === 'guess' && !S.checking;
   const canPass = canMark || canGuess;
   const canSetActive = ['idle', 'choose', 'ended'].includes(S.stage);
   const usedQ = new Set(S.usedQ);
@@ -843,6 +847,7 @@ function toggleQ() {
 }
 
 function markCorrect() {
+  if (S.checking) return;
   if (S.stage !== 'answering') return toast(S.stage === 'choose' ? 'Choose a question first.' : 'Nothing to mark right now.');
   commit(() => {
     S.stage = 'guess';
@@ -852,6 +857,7 @@ function markCorrect() {
   });
 }
 function markWrong() {
+  if (S.checking) return;
   if (S.stage !== 'answering') return toast(S.stage === 'choose' ? 'Choose a question first.' : 'Nothing to mark right now.');
   commit(() => {
     const nm = S.patrols[S.active].name;
@@ -863,6 +869,7 @@ function markWrong() {
   });
 }
 function passTurn() {
+  if (S.checking) return;
   if (!(S.stage === 'answering' || S.stage === 'guess')) return;
   commit(() => {
     const nm = S.patrols[S.active].name;
@@ -874,6 +881,7 @@ function passTurn() {
 }
 
 function callLetter(L) {
+  if (S.checking) return;
   if (!L) return;
   if (S.stage !== 'guess') return toast(S.patrols[S.active].name + ' must answer correctly before calling a letter.');
   if (S.guessed[L]) return toast(L + ' has already been called.');
@@ -906,6 +914,7 @@ function doLetter(L) {
 }
 
 function sayLetter() {
+  if (S.checking) return;
   const raw = (($('#say') || {}).value || '').trim().toUpperCase().replace(/[^A-Z]/g, '');
   if (!raw) return;
   const L = PHONETIC_LOOKUP[raw] || (raw.length === 1 ? raw : null);
@@ -916,6 +925,7 @@ function sayLetter() {
 }
 
 function solve(ok) {
+  if (S.checking) return;
   if (S.stage !== 'guess') return toast('A phrase attempt is only possible after a correct answer.');
   commit(() => {
     const pIdx = S.active, pt = S.patrols[pIdx], nm = pt.name;
@@ -928,14 +938,22 @@ function solve(ok) {
       setEvent('solve', {patrol: nm, pts: SOLVE_BONUS});
       logMsg(nm + ': phrase solved, +' + SOLVE_BONUS + '. Round over.');
     } else {
-      advance();
-      S.stage = 'choose'; S.question = null; S.questionShown = false;
-      setEvent('wrongsolve', {patrol: nm});
-      logMsg(nm + ': phrase not correct. No bonus, turn passes.');
+      S.checking = {until: Date.now() + 3500};
+      setEvent('checking', {patrol: nm});
+      logMsg(nm + ': phrase being checked...');
     }
   });
 }
 
+function resolveWrongSolve() {
+  const nm = S.patrols[S.active].name;
+  S.checking = null;
+  advance();
+  S.stage = 'choose'; S.question = null; S.questionShown = false;
+  const next = S.patrols[S.active].name;
+  setEvent('wrongsolve', {patrol: nm, next});
+  logMsg(nm + ': phrase not correct. No bonus, turn passes to ' + next + '.');
+}
 function revealAnswer() {
   if (!S.phrase || S.stage === 'idle' || S.stage === 'ended') return;
   if (!confirm('Reveal the answer on the projector and end this round? No more points will be scored.')) return;
@@ -1268,6 +1286,7 @@ function setupScouter() {
   setInterval(() => {
     updateConn();
     if (S.timerEnd && Date.now() >= S.timerEnd) timeUp();
+    if (S.checking && Date.now() >= S.checking.until) commit(resolveWrongSolve);
     updateTimers();
   }, 500);
 }
@@ -1301,6 +1320,7 @@ function updateTimers() {
 }
 
 function nowText(pub) {
+  if (pub.checking) { const n = pub.checking.patrol; return "Checking " + n + (/s$/i.test(n) ? "' " : "'s ") + "phrase..."; }
   const a = pub.patrols[pub.active] ? pub.patrols[pub.active].name : '';
   switch (pub.stage) {
     case 'choose': return a + ' to take the next turn';
@@ -1348,6 +1368,19 @@ function finalHTML(pub) {
     '<ol class="f-list">' + rows.map((r, k) => '<li style="--c:' + r.colour + '"><span class="f-rank">' + (k + 1) + '</span><span class="f-name">' + esc(r.name) + '</span><span class="f-score">' + r.score + '</span></li>').join('') + '</ol></div>';
 }
 
+let flickerT = null;
+function startFlicker() {
+  if (flickerT) return;
+  flickerT = setInterval(() => {
+    document.querySelectorAll('#pboard .tile.hid').forEach(t => {
+      t.textContent = LETTERS[Math.floor(Math.random() * 26)];
+      t.style.color = '#ffc83d';
+    });
+  }, 90);
+}
+function stopFlicker() {
+  if (flickerT) { clearInterval(flickerT); flickerT = null; }
+}
 function renderProjector(pub) {
   const stage = $('#stage');
   if (!stage) return;
@@ -1375,6 +1408,7 @@ function renderProjector(pub) {
     popMap = new Map();
   }
   lastScreen = pub.screen;
+  if (pub.checking && pub.screen === 'board') startFlicker(); else stopFlicker();
   const ev = pub.event;
   if (lastEvId === null) lastEvId = ev ? ev.id : 0;
   else if (ev && ev.id !== lastEvId) { lastEvId = ev.id; showEvent(ev); }
@@ -1414,8 +1448,10 @@ function showEvent(ev) {
     case 'solve':
       confetti();
       return showBanner('PHRASE SOLVED! &nbsp;<b>+' + ev.pts + '</b> ' + esc(ev.patrol), 'good');
+    case 'checking':
+      return showBanner('CHECKING THE PHRASE...', 'info');
     case 'wrongsolve':
-      return showBanner('NOT THE PHRASE &nbsp;·&nbsp; no bonus', 'bad');
+      return showBanner('NOT QUITE &nbsp;·&nbsp; turn passes to ' + esc(ev.next), 'bad');
     case 'time':
       return showBanner('TIME\'S UP', 'bad');
     case 'reveal-answer':
