@@ -1,0 +1,1499 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pioneering Wheel of Fortune</title>
+<style>
+:root{
+  --bg:#06101f; --panel:#102640; --panel2:#163254; --line:#2c4f7c; --text:#eef5ff; --muted:#9db3d1;
+  --gold:#ffc83d; --hit:#2fd27c; --miss:#ff5b5b; --info:#55c8ff;
+  --u:min(0.9vw,1.6vh);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background-color:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:.45em .85em;font-weight:600}
+button:hover:not(:disabled){filter:brightness(1.18)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{background:var(--gold);color:#1a1200;border-color:#ffd96b}
+button.good{background:#14532f;border-color:var(--hit)}
+button.bad{background:#5a1d24;border-color:var(--miss)}
+button.danger{background:#5a1d24;border-color:#8b3340}
+input,select,textarea{background:#081629;border:1px solid var(--line);border-radius:8px;padding:.4em .55em}
+kbd{background:#0a1a2f;border:1px solid var(--line);border-radius:5px;padding:.1em .4em;font-family:Consolas,monospace}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.grow{flex:1;min-width:0}
+.num{width:76px}
+.btn-big{padding:.7em 1em;font-size:16px}
+
+/* ---------- Scouter control panel ---------- */
+#scouter{display:none;padding:12px 14px;min-height:100%}
+body.mode-scouter #scouter{display:block}
+body.board-here #scouter{display:none}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.title{font-size:21px;font-weight:800;color:var(--gold)}
+.title small{display:block;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.btns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.conn{font-size:13px;font-weight:700;padding:5px 10px;border-radius:99px;border:1px solid var(--line)}
+.conn.ok{color:var(--hit);border-color:var(--hit)}
+.conn.bad{color:var(--miss);border-color:var(--miss)}
+.grid{display:grid;grid-template-columns:minmax(300px,1fr) minmax(400px,1.5fr) minmax(270px,1fr);gap:10px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px;min-width:0}
+@media (max-width:1050px){.grid{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--panel),#0c1f37);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.card h3{margin:0 0 8px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pcard{padding:8px;border-radius:10px;border:2px solid transparent;background:#0a1a2f;margin-bottom:8px;border-left:6px solid var(--c)}
+.pcard.on{border-color:var(--c)}
+.pc-top{display:flex;align-items:center;gap:8px}
+.pname{font-size:17px;font-weight:700;flex:1;min-width:0}
+.pscore{font-size:30px;font-weight:800;color:var(--c);font-variant-numeric:tabular-nums}
+.pc-meta{font-size:13px;color:var(--muted);margin:2px 0 4px}
+.stage-note{padding:9px 10px;border-radius:8px;background:#0a1a2f;border-left:4px solid var(--info);margin-bottom:8px;font-size:15px}
+.lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.qbox{margin-top:8px;padding:8px 10px;border-radius:8px;background:#0a1a2f}
+.qtxt{font-size:17px;font-weight:700;margin:3px 0}
+.answer-box{margin-top:6px;padding:8px 10px;border:1px dashed var(--gold);border-radius:8px;color:#ffe58a}
+.preview{height:230px;flex:none;background:radial-gradient(ellipse at 50% 0%,#1b3f72,#0a1d38 70%);border-radius:10px;border:1px solid var(--line);position:relative}
+.kb{display:grid;grid-template-columns:repeat(13,1fr);gap:5px;margin-top:6px}
+.key{padding:.45em 0;font-size:18px;font-weight:800;min-width:0}
+.key.hit{background:#14532f;border-color:var(--hit)}
+.key.miss{background:#5a1d24;border-color:var(--miss)}
+.key.off:not(.hit):not(.miss){opacity:.5}
+.nato{margin-top:8px;min-height:1.4em;font-size:16px;color:#ffe58a;font-weight:700}
+.log{max-height:420px;overflow:auto;font-size:13px;font-family:Consolas,monospace;color:#cfe0f7;white-space:pre-wrap}
+.big-timer{font-size:42px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--gold);text-align:center;margin-top:6px}
+.big-timer.low{color:var(--miss)}
+.rules{font-size:14px;line-height:1.5;padding-left:18px;margin:0}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0b2a4a;border:1px solid var(--gold);padding:10px 16px;border-radius:10px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60;font-weight:600}
+.toast.show{opacity:1}
+#modal{position:fixed;inset:0;background:rgba(2,8,18,.78);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:30px 14px;z-index:40}
+#modal[hidden]{display:none}
+.sheet{background:#0d2140;border:1px solid var(--line);border-radius:14px;padding:18px;width:min(920px,100%)}
+.sheet h2{margin:0 0 8px;color:var(--gold)}
+.sheet label{display:block;margin:10px 0;font-size:14px}
+.sheet input,.sheet select,.sheet textarea{width:100%;margin-top:4px;display:block}
+.sheet ul.keys{list-style:none;padding:0;margin:0}
+.sheet ul.keys li{margin:6px 0}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.nato-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+.tbl{max-height:58vh;overflow:auto}
+.nw{white-space:nowrap}
+.ans{color:#ffe58a;font-size:13px;margin-top:3px}
+
+/* ---------- Projector ---------- */
+.projector{display:none;position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,#1b3f72 0%,#0a1d38 45%,#050d19 100%);background-color:#06101f;flex-direction:column;padding:calc(var(--u)*1) calc(var(--u)*1.6);gap:calc(var(--u)*0.8);overflow:hidden;color:var(--text);z-index:20;padding-bottom:calc(var(--u)*2.6)}
+body.mode-projector .projector,body.board-here .projector{display:flex}
+#stage{flex:1;min-height:0;display:flex;flex-direction:column;gap:calc(var(--u)*0.8)}
+.p-top{display:flex;align-items:center;justify-content:space-between;gap:2vw}
+.p-title{font-size:calc(var(--u)*1.7);font-weight:800;color:var(--gold)}
+.p-round{font-size:calc(var(--u)*2.2);font-weight:700;text-align:center}
+.p-timer{font-size:calc(var(--u)*3.6);font-weight:800;font-variant-numeric:tabular-nums;min-width:3ch;text-align:right;color:var(--gold)}
+.p-timer.low{color:var(--miss)}
+.p-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*1)}
+.pc{background:rgba(16,38,64,.85);border:1px solid var(--line);border-top:calc(var(--u)*0.4) solid var(--c);border-radius:calc(var(--u)*0.8);padding:calc(var(--u)*0.6) calc(var(--u)*1);text-align:center;transition:box-shadow .3s}
+.pc.on{box-shadow:0 0 0 calc(var(--u)*0.2) var(--c),0 0 calc(var(--u)*3) var(--c)}
+.pn{font-size:calc(var(--u)*2.1);font-weight:800}
+.ps{font-size:calc(var(--u)*4.6);font-weight:900;color:var(--c);font-variant-numeric:tabular-nums;line-height:1.15}
+.pr{font-size:calc(var(--u)*1.3);color:var(--muted);min-height:1.4em}
+.p-now{text-align:center;font-size:calc(var(--u)*2.2);font-weight:700;background:rgba(255,255,255,.07);border-radius:calc(var(--u)*0.6);padding:calc(var(--u)*0.5)}
+.p-board{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+.boardin{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.line{display:flex;align-items:center;justify-content:center}
+.word{display:flex;align-items:center}
+.sp{flex:0 0 auto}
+.tile{display:flex;align-items:center;justify-content:center;flex:0 0 auto;border:2px solid #3f74ad;box-sizing:border-box;font-weight:900;line-height:1;user-select:none}
+.tile.hid{background:linear-gradient(180deg,#1b3d6b,#0e2748);box-shadow:inset 0 -4px 0 rgba(0,0,0,.3)}
+.tile.shown{background:linear-gradient(180deg,#fffbe6,#f3d878);border-color:#ffe38a;color:#1a1200;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
+.tile.pop{animation:flip .7s ease both}
+@keyframes flip{0%{transform:perspective(400px) rotateX(90deg);opacity:.2}60%{transform:perspective(400px) rotateX(-12deg);opacity:1}100%{transform:none;opacity:1}}
+.p-empty{font-size:calc(var(--u)*3);color:var(--muted)}
+.p-q{background:rgba(255,200,61,.08);border:1px solid var(--gold);border-radius:calc(var(--u)*0.7);padding:calc(var(--u)*0.7) calc(var(--u)*1.2);text-align:center}
+.q-meta{font-size:calc(var(--u)*1.2);color:var(--gold);text-transform:uppercase;letter-spacing:.1em}
+.q-txt{font-size:calc(var(--u)*2.4);font-weight:700;margin-top:4px}
+.p-used{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:calc(var(--u)*0.35)}
+.p-used .lbl{width:100%;text-align:center;font-size:calc(var(--u)*1.1);color:var(--muted);letter-spacing:.12em;margin-bottom:2px}
+.chip{width:calc(var(--u)*2.3);height:calc(var(--u)*2.3);display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--line);font-weight:800;font-size:calc(var(--u)*1.3);color:#5f7ea6}
+.chip.hit{background:var(--hit);color:#04200f;border-color:var(--hit)}
+.chip.miss{background:var(--miss);color:#2a0606;border-color:var(--miss)}
+.p-bottom{display:flex;align-items:center;gap:calc(var(--u)*1);font-size:calc(var(--u)*1.3);color:var(--muted)}
+.p-prog{flex:1;height:calc(var(--u)*1.1);background:#0a1a2f;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.p-prog div{height:100%;background:linear-gradient(90deg,var(--info),var(--gold));transition:width .6s}
+.banner{position:fixed;left:50%;top:calc(var(--u)*7);transform:translate(-50%,-10px);background:rgba(5,13,25,.94);border:2px solid var(--info);border-radius:calc(var(--u)*0.8);padding:calc(var(--u)*0.8) calc(var(--u)*1.6);font-size:calc(var(--u)*2.2);font-weight:700;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;white-space:nowrap;z-index:5}
+.banner.show{opacity:1;transform:translate(-50%,0)}
+.banner.good{border-color:var(--hit)}
+.banner.bad{border-color:var(--miss)}
+.splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,8,16,.82);opacity:0;pointer-events:none;transition:opacity .4s;z-index:6;text-align:center}
+.splash.show{opacity:1}
+.sp-r{font-size:calc(var(--u)*9);font-weight:900;color:var(--gold);letter-spacing:.05em}
+.sp-c{font-size:calc(var(--u)*3.4);color:#fff}
+.final{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*1.2);text-align:center}
+.f-t{font-size:calc(var(--u)*2.2);letter-spacing:.2em;color:var(--muted)}
+.f-w{font-size:calc(var(--u)*5);font-weight:900;color:var(--gold)}
+.f-list{list-style:none;padding:0;margin:0;width:min(60vw,900px)}
+.f-list li{display:grid;grid-template-columns:auto 1fr auto;gap:calc(var(--u)*1.2);align-items:center;padding:calc(var(--u)*0.7) calc(var(--u)*1.4);margin:calc(var(--u)*0.5) 0;border-left:calc(var(--u)*0.6) solid var(--c);background:rgba(16,38,64,.85);border-radius:calc(var(--u)*0.6);font-size:calc(var(--u)*2.6)}
+.f-rank{font-weight:900;color:var(--c)}
+.f-name{font-weight:700;text-align:left}
+.f-score{font-weight:900;font-variant-numeric:tabular-nums}
+.waiting,.blank{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1em}
+.blank-t{font-size:calc(var(--u)*3);color:var(--gold);font-weight:800}
+.blank-m{font-size:calc(var(--u)*2.5);color:var(--muted)}
+.pfs{position:fixed;right:8px;bottom:6px;font-size:12px;opacity:.35;z-index:7}
+html:fullscreen .pfs{display:none}
+.pback{position:fixed;right:8px;top:6px;z-index:7;display:none}
+body.board-here .pback{display:block}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:8}
+</style>
+</head>
+<body>
+<div id="scouter"></div>
+
+<div id="projector" class="projector">
+  <div id="stage"></div>
+  <div id="banner" class="banner"></div>
+  <div id="splash" class="splash"></div>
+  <canvas id="confetti"></canvas>
+  <button class="pfs" data-act="fullscreen">Full screen (F)</button>
+  <button class="pback" data-act="board-off">Back to controls (Esc)</button>
+</div>
+
+<div id="modal" hidden></div>
+<div id="toast" class="toast"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   Pioneering Wheel of Fortune
+   One file, no internet needed. Open it in Chrome or Edge.
+   ?view=projector opens the board for the projector (read-only).
+   Without it, you get the Scouter control panel.
+   ===================================================================== */
+
+/* ---------------- Built-in question bank ----------------
+   area: 1-10 (see AREAS). level: 'easy' | 'medium' | 'hard'.
+   Defaults for the Pioneering Adventure Skill. Edit them from the control panel, or here.
+   'Reset to built-in' in the control panel clears saved edits and uses these again. */
+const AREAS = [
+  '',
+  'Ropes and rope care',
+  'Knots',
+  'Lashings and poles',
+  'Safety and first aid',
+  'Tools and equipment',
+  'Elastic band gadgets',
+  'Structures and guy ropes',
+  'Pulleys and lifting',
+  'Leave No Trace',
+  'Teamwork and responsibility'
+];
+const LEVELS = ['easy', 'medium', 'hard'];
+
+const BUILTIN_QUESTIONS = [
+  {area:1, level:'easy', q:"Name two types of rope material, one natural and one synthetic.", a:"Natural: manila, sisal or cotton. Synthetic: polypropylene, polyester or nylon."},
+  {area:1, level:'easy', q:"Why should rope be kept dry and out of sunlight when it is stored?", a:"Damp and sunlight weaken the fibres and can rot natural rope, so it becomes less safe."},
+  {area:1, level:'medium', q:"What is whipping, and why is it done?", a:"Binding the end of a rope with thread or tape to stop it fraying."},
+  {area:1, level:'medium', q:"What is a splice?", a:"A join made by tucking the strands of two rope ends into each other. It keeps the rope strong without a knot."},
+  {area:1, level:'hard', q:"Why must you check a rope for damage before every use?", a:"Worn, cut or frayed rope can fail under load, and a sudden failure can cause serious injury."},
+  {area:2, level:'easy', q:"Which knot joins two ropes of the same thickness?", a:"The reef knot."},
+  {area:2, level:'easy', q:"Which knot makes a fixed loop that will not slip?", a:"The bowline."},
+  {area:2, level:'medium', q:"Which knot should you use to join two ropes of different thickness?", a:"The sheet bend."},
+  {area:2, level:'medium', q:"Which knot ties a rope to a post so that it holds under strain?", a:"The round turn and two half hitches."},
+  {area:2, level:'hard', q:"What is a figure of eight knot used for?", a:"A stopper knot at the end of a rope, so the rope cannot pull through a hole or fitting."},
+  {area:2, level:'hard', q:"What is a timber hitch used for?", a:"Attaching a rope to a log or pole so it can be dragged. The pull tightens the hitch."},
+  {area:3, level:'easy', q:"What is a lashing?", a:"A way of tying poles together with rope to make a strong joint."},
+  {area:3, level:'easy', q:"Which lashing joins two poles that cross at right angles?", a:"A square lashing."},
+  {area:3, level:'medium', q:"Which lashing joins two poles that cross at an angle, for a diagonal brace?", a:"A diagonal lashing."},
+  {area:3, level:'medium', q:"What is a sheer lashing used for?", a:"Joining two poles side by side at one end so they can be spread apart, for example to make a tripod or A-frame."},
+  {area:3, level:'hard', q:"Why must each lashing be tight and even before you load the structure?", a:"Tight, even turns hold the poles firmly. Loose lashings slip under load and can make the whole structure collapse."},
+  {area:4, level:'easy', q:"What is the emergency number in Ireland?", a:"112 or 999."},
+  {area:4, level:'easy', q:"What should you do first if someone gets a cut?", a:"Make sure the area is safe, then clean the cut and press a clean dressing on it to stop the bleeding."},
+  {area:4, level:'medium', q:"What does RICE stand for when treating a sprain?", a:"Rest, Ice, Compression and Elevation."},
+  {area:4, level:'medium', q:"Why must you wear gloves when handling rope and poles?", a:"To protect your hands from splinters, rope burns and cuts."},
+  {area:4, level:'hard', q:"Why should you never stand under a pole or spar that is being lifted?", a:"If the load slips or the lifting rope fails, it can fall and cause serious injury."},
+  {area:4, level:'hard', q:"What should you do if somebody is seriously hurt on a project?", a:"Stop the activity, keep the area safe, do not move them unless they are in danger, call 112 or 999, and tell your Scouter."},
+  {area:5, level:'easy', q:"Name two tools or items of equipment you might use on a pioneering project.", a:"Any two of: a knife, a mallet, a saw, a hand axe, rope, poles, spars or gloves."},
+  {area:5, level:'easy', q:"Why should you always cut rope away from your body?", a:"If the knife slips, it cuts the rope and not your hands or legs."},
+  {area:5, level:'medium', q:"How should tools be looked after after use?", a:"Clean them, dry them, and store them safely where they cannot cause injury or be damaged."},
+  {area:5, level:'medium', q:"What equipment do you need to build a simple pioneering gadget?", a:"Poles or spars, rope, the right tools for cutting and lashing, and any safety equipment such as gloves."},
+  {area:5, level:'hard', q:"Why should a blunt knife be sharpened or replaced before use?", a:"A blunt tool needs more force, so it is more likely to slip and cause an injury."},
+  {area:6, level:'easy', q:"What stores the energy in an elastic band catapult?", a:"The stretched elastic band."},
+  {area:6, level:'easy', q:"What happens to the stored energy when the band is released?", a:"It is released as movement, which fires the object."},
+  {area:6, level:'medium', q:"Why does stretching an elastic band store energy?", a:"The stretched rubber has potential energy, which is released as it returns to its normal length."},
+  {area:6, level:'medium', q:"What should you check before firing an elastic band gadget?", a:"That the band is in good condition, that nothing is in the firing line, and that people are clear of it."},
+  {area:6, level:'hard', q:"Why should you never fire an elastic band gadget at people?", a:"It can cause eye injuries and other serious harm."},
+  {area:7, level:'easy', q:"How many legs does a tripod need?", a:"Three."},
+  {area:7, level:'easy', q:"Why do triangles make strong frames?", a:"A triangle cannot change shape unless one of its sides changes length, so it stays rigid."},
+  {area:7, level:'medium', q:"Why does a square frame need a diagonal brace?", a:"A square can lean and collapse sideways. A diagonal brace splits it into two triangles, which are rigid."},
+  {area:7, level:'medium', q:"What is the purpose of guy ropes on a tower?", a:"To steady the structure and stop it leaning or falling over in wind or under load."},
+  {area:7, level:'hard', q:"Why should guy ropes be marked or kept away from walkways?", a:"They are a trip hazard, so people can walk into them and be injured, or they can pull the structure over."},
+  {area:8, level:'easy', q:"What is the purpose of a pulley?", a:"To change the direction of a pull, or to make a load easier to lift."},
+  {area:8, level:'medium', q:"What does a 2:1 pulley system do?", a:"It halves the effort needed to lift a load, but you have to pull twice as much rope to lift it the same distance."},
+  {area:8, level:'medium', q:"What is mechanical advantage?", a:"How many times a machine multiplies your effort, so you can lift more than you could by hand."},
+  {area:8, level:'hard', q:"Before lifting a heavy pole, what should your team agree?", a:"A plan, clear signals and who gives the commands. Everyone should stand clear of the load."},
+  {area:8, level:'hard', q:"What should you check on a pulley before using it?", a:"That it is in good condition, that the rope runs freely through it, and that its fixings are secure."},
+  {area:9, level:'easy', q:"What is the first Leave No Trace principle?", a:"Plan ahead and prepare."},
+  {area:9, level:'easy', q:"What does \"Leave what you find\" mean?", a:"Do not take or damage natural things such as plants, rocks or wood. Leave them as you found them."},
+  {area:9, level:'medium', q:"What does \"Dispose of waste properly\" mean?", a:"Pack out all your litter and do not leave food or rubbish behind."},
+  {area:9, level:'medium', q:"Give one way to reduce your impact when using a campfire.", a:"Use an existing fire ring or fire tray, keep the fire small, and make sure it is fully out before you leave."},
+  {area:9, level:'hard', q:"Name two of the seven Leave No Trace principles.", a:"Any two of: plan ahead and prepare; travel and camp on durable surfaces; dispose of waste properly; leave what you find; minimise campfire impacts; respect wildlife; be considerate of other visitors."},
+  {area:10, level:'easy', q:"Why must you follow your Scouter's instructions on a pioneering project?", a:"For safety, so that everyone works together and the project is built correctly."},
+  {area:10, level:'easy', q:"What does being responsible for yourself mean on a project?", a:"Knowing what you are doing, working safely, and asking for help when you are unsure."},
+  {area:10, level:'medium', q:"Why is it useful to teach another Scout to tie a knot?", a:"It helps them learn a safe skill, and teaching it shows that you know it well yourself."},
+  {area:10, level:'medium', q:"Why should you check your team members before a lift?", a:"To make sure everyone is ready, in the right place, and knows the signal to stop."},
+  {area:10, level:'hard', q:"What should you do if you spot a dangerous structure or an unsafe rope?", a:"Stop, tell your Scouter straight away, and keep others away until it has been made safe."}
+];
+
+/* ---------------- Built-in phrases ---------------- */
+const BUILTIN_PHRASES = [
+  {level:'easy', category:"Knots", text:"PIONEERING NEEDS GOOD KNOTS"},
+  {level:'easy', category:"Knots", text:"THE BOWLINE MAKES A FIXED LOOP"},
+  {level:'easy', category:"Ropes", text:"ALWAYS CHECK YOUR ROPES"},
+  {level:'easy', category:"Safety", text:"WEAR GLOVES WHEN HANDLING ROPE"},
+  {level:'easy', category:"Structures", text:"A TRIPOD NEEDS THREE LEGS"},
+  {level:'easy', category:"Lashings", text:"LASH THE POLES SECURELY"},
+  {level:'medium', category:"Knots", text:"THE REEF KNOT JOINS EQUAL ROPES"},
+  {level:'medium', category:"Structures", text:"TRIANGLES MAKE STRONG FRAMES"},
+  {level:'medium', category:"Structures", text:"USE GUY ROPES TO STEADY YOUR TOWER"},
+  {level:'medium', category:"Elastic bands", text:"STORED ENERGY IN AN ELASTIC BAND"},
+  {level:'medium', category:"Pulleys", text:"PULLEYS MAKE LIFTING EASIER"},
+  {level:'medium', category:"Leave No Trace", text:"LEAVE NO TRACE OF YOUR CAMP"},
+  {level:'medium', category:"Teamwork", text:"FOLLOW THE INSTRUCTIONS OF YOUR SCOUTER"},
+  {level:'hard', category:"Safety", text:"NEVER STAND UNDER A LIFTED SPAR"},
+  {level:'hard', category:"Lashings", text:"A DIAGONAL BRACE STOPS A FRAME LEANING"},
+  {level:'hard', category:"Ropes", text:"WHIP THE ENDS OF EVERY ROPE"},
+  {level:'hard', category:"Safety", text:"CHECK EVERY LASHING BEFORE YOU LOAD IT"}
+];
+
+/* ---------------- NATO phonetic alphabet (ICAO spellings) ---------------- */
+const NATO = {A:'Alfa',B:'Bravo',C:'Charlie',D:'Delta',E:'Echo',F:'Foxtrot',G:'Golf',H:'Hotel',I:'India',J:'Juliett',K:'Kilo',L:'Lima',M:'Mike',N:'November',O:'Oscar',P:'Papa',Q:'Quebec',R:'Romeo',S:'Sierra',T:'Tango',U:'Uniform',V:'Victor',W:'Whiskey',X:'X-ray',Y:'Yankee',Z:'Zulu'};
+const PHONETIC_LOOKUP = {ALPHA:'A', JULIET:'J'};
+Object.entries(NATO).forEach(([L, w]) => { PHONETIC_LOOKUP[w.toUpperCase().replace(/[^A-Z]/g, '')] = L; });
+
+/* ---------------- Settings ---------------- */
+const COLOURS = ['#ff8a4c', '#3fd0c9', '#c58bff'];
+const POINTS_PER_LETTER = 10;
+const SOLVE_BONUS = 50;
+const KEY_STATE = 'pioneer.state.v1';
+const KEY_PUB = 'pioneer.public.v1';
+const KEY_BANK = 'pioneer.bank.v1';
+const KEY_HB = 'pioneer.projector.heartbeat';
+const KEY_PREFS = 'pioneer.prefs.v1';
+
+/* ---------------- Helpers ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const trim = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
+const MODE = new URLSearchParams(location.search).get('view') === 'projector' ? 'projector' : 'scouter';
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+function jparse(s, fb) { try { const v = JSON.parse(s); return (v === null || v === undefined) ? fb : v; } catch (e) { return fb; } }
+function normPhrase(s) { return String(s || '').toUpperCase().replace(/[^A-Z]+/g, ' ').trim(); }
+function clamp(n, a, b) { return Math.min(b, Math.max(a, n)); }
+
+let PREFS = Object.assign({muted: false}, jparse(lsGet(KEY_PREFS), {}));
+function savePrefs() { lsSet(KEY_PREFS, JSON.stringify(PREFS)); }
+
+/* ---------------- Bank (questions and phrases) ---------------- */
+function defaultBank() {
+  return {
+    questions: BUILTIN_QUESTIONS.map((q, i) => Object.assign({id: 'q' + String(i + 1).padStart(2, '0')}, q)),
+    phrases: BUILTIN_PHRASES.map((p, i) => Object.assign({id: 'p' + String(i + 1).padStart(2, '0')}, p))
+  };
+}
+function loadBank() {
+  const b = jparse(lsGet(KEY_BANK), null);
+  if (!(b && Array.isArray(b.questions) && Array.isArray(b.phrases))) return defaultBank();
+  // Add any built-in questions or phrases that are new since this browser last saved the bank.
+  // Edited or deleted items are not restored, because only missing ids are added.
+  const d = defaultBank();
+  d.questions.forEach(q => { if (!b.questions.some(x => x.id === q.id)) b.questions.push(q); });
+  d.phrases.forEach(p => { if (!b.phrases.some(x => x.id === p.id)) b.phrases.push(p); });
+  return b;
+}
+let BANK = loadBank();
+function saveBank() { lsSet(KEY_BANK, JSON.stringify(BANK)); }
+
+/* ---------------- Game state ---------------- */
+function newGame() {
+  return {
+    eventSeq: 0, event: null,
+    patrols: [
+      {name: 'Eagles', score: 0, turns: 0},
+      {name: 'Falcons', score: 0, turns: 0},
+      {name: 'Kestrels', score: 0, turns: 0}
+    ],
+    active: 0,            // index of the Patrol whose turn it is
+    roundNo: 0,
+    totalRounds: 6,
+    phrase: null,         // {id, text, category, level}; text is hidden from the projector
+    guessed: {},          // letter -> 'hit' | 'miss'
+    revealAll: false,
+    roundPts: [0, 0, 0],
+    roundStart: null,     // {active, turns} for "Reset this round"
+    stage: 'idle',        // idle | choose | answering | guess | ended
+    question: null,       // {id, area, level, q, a}; a is Scouter only
+    questionShown: false,
+    timerEnd: null,
+    timerSecs: 30,
+    usedQ: [],
+    usedP: [],
+    screen: 'board',      // board | blank | final
+    finished: false,
+    log: []
+  };
+}
+function loadState() {
+  const s = jparse(lsGet(KEY_STATE), null);
+  return (s && Array.isArray(s.patrols) && s.patrols.length === 3) ? s : newGame();
+}
+let S = loadState();
+let undoStack = [];
+let prevEventId = S.event ? S.event.id : 0;
+
+function logMsg(msg) {
+  const t = new Date().toLocaleTimeString('en-IE', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+  S.log.unshift(t + '  ' + msg);
+  if (S.log.length > 150) S.log.length = 150;
+}
+function setEvent(kind, extra) {
+  S.eventSeq = (S.eventSeq || 0) + 1;
+  S.event = Object.assign({id: S.eventSeq, kind}, extra || {});
+}
+function advance() { S.active = (S.active + 1) % 3; }
+function letterCount(L) { let n = 0; for (const ch of S.phrase.text) if (ch === L) n++; return n; }
+function allRevealed() {
+  const letters = new Set(S.phrase.text.replace(/ /g, '').split(''));
+  return [...letters].every(L => S.guessed[L] === 'hit');
+}
+function pickPhrase(level) {
+  const match = p => level === 'any' || p.level === level;
+  let pool = BANK.phrases.filter(p => match(p) && !S.usedP.includes(p.id));
+  if (!pool.length) {
+    const all = BANK.phrases.filter(match);
+    if (!all.length) return null;
+    S.usedP = S.usedP.filter(id => !all.some(p => p.id === id));
+    pool = all;
+    logMsg('All ' + (level === 'any' ? '' : level + ' ') + 'phrases used, so the list has been recycled');
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function pickQuestion(level) {
+  const match = q => level === 'any' || q.level === level;
+  let pool = BANK.questions.filter(q => match(q) && !S.usedQ.includes(q.id));
+  if (!pool.length) {
+    const all = BANK.questions.filter(match);
+    if (!all.length) return null;
+    S.usedQ = S.usedQ.filter(id => !all.some(q => q.id === id));
+    pool = all;
+    logMsg('All ' + (level === 'any' ? '' : level + ' ') + 'questions used, so the list has been recycled');
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function stageText() {
+  const a = S.patrols[S.active].name;
+  switch (S.stage) {
+    case 'idle':
+      if (S.finished) return 'Game finished. Start a new game, or go back to the game.';
+      if (S.roundNo >= S.totalRounds) return 'All rounds have been played. Finish the game to show the leaderboard.';
+      return 'No round running. Pick a phrase and start the round.';
+    case 'choose': return a + ' to take the next turn. Choose a question for them.';
+    case 'answering': return a + ' is answering over the radio. Mark the answer correct or incorrect.';
+    case 'guess': return a + ' answered correctly. They can call a letter (NATO word, then click it) or try the whole phrase.';
+    case 'ended': return 'Round over. Start the next round when ready.';
+  }
+  return '';
+}
+
+/* Projector payload: everything the projector may show, and nothing else.
+   No answers, no hidden phrase. Hidden letters are null on the board. */
+function buildPublic() {
+  const p = S.phrase;
+  const board = [];
+  let total = 0, shown = 0;
+  if (p) {
+    for (const ch of p.text) {
+      if (ch === ' ') { board.push(' '); continue; }
+      total++;
+      const open = S.revealAll || S.guessed[ch] === 'hit';
+      if (open) shown++;
+      board.push(open ? ch : null);
+    }
+  }
+  return {
+    screen: S.screen,
+    patrols: S.patrols.map((pt, i) => ({name: pt.name, score: pt.score, round: S.roundPts[i] || 0, colour: COLOURS[i]})),
+    active: S.active,
+    stage: S.stage,
+    roundNo: S.roundNo,
+    totalRounds: S.totalRounds,
+    category: p ? p.category : '',
+    hasPhrase: !!p,
+    board,
+    used: Object.assign({}, S.guessed),
+    question: (S.question && S.questionShown) ? {text: S.question.q, area: AREAS[S.question.area], level: S.question.level} : null,
+    timerEnd: S.timerEnd,
+    event: S.event,
+    progress: total ? shown / total : 0
+  };
+}
+
+/* ---------------- Persistence ---------------- */
+function persist() {
+  lsSet(KEY_STATE, JSON.stringify(S));
+  lsSet(KEY_PUB, JSON.stringify(buildPublic()));
+}
+
+/* Every change goes through commit(): it snapshots for undo, saves, redraws and plays sounds. */
+function commit(fn) {
+  const before = JSON.stringify(S);
+  fn();
+  const after = JSON.stringify(S);
+  if (after !== before) {
+    undoStack.push(before);
+    if (undoStack.length > 80) undoStack.shift();
+    persist();
+  }
+  renderScouter();
+  if (S.event && S.event.id !== prevEventId) {
+    prevEventId = S.event.id;
+    playEvent(S.event);
+  }
+}
+function undo() {
+  if (!undoStack.length) return toast('Nothing to undo');
+  const seq = S.eventSeq;
+  S = JSON.parse(undoStack.pop());
+  S.eventSeq = seq + 1;
+  S.event = {id: S.eventSeq, kind: 'none'};
+  prevEventId = S.event.id;
+  logMsg('Undo');
+  persist();
+  renderScouter();
+}
+
+/* ---------------- Sound (synthesised, offline) ---------------- */
+let AC = null;
+function audio() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+  if (AC && AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function tone(freq, start, dur, type, vol) {
+  const ac = audio();
+  if (!ac || PREFS.muted) return;
+  const o = ac.createOscillator(), g = ac.createGain();
+  const t0 = ac.currentTime + start;
+  o.type = type || 'sine';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol || 0.1, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(ac.destination);
+  o.start(t0);
+  o.stop(t0 + dur + 0.02);
+}
+function sfx(name, n) {
+  switch (name) {
+    case 'correct': [523, 659, 784].forEach((f, i) => tone(f, i * 0.12, 0.25, 'triangle', 0.1)); break;
+    case 'wrong': tone(220, 0, 0.35, 'sawtooth', 0.06); tone(165, 0.2, 0.35, 'sawtooth', 0.06); break;
+    case 'reveal': for (let k = 0; k < (n || 1); k++) tone(880 + k * 110, k * 0.11, 0.12, 'square', 0.05); break;
+    case 'miss': tone(300, 0, 0.25, 'triangle', 0.08); break;
+    case 'solve': [523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.14, 0.35, 'triangle', 0.12)); break;
+    case 'buzzer': tone(150, 0, 0.9, 'square', 0.07); break;
+    case 'round': tone(660, 0, 0.2, 'sine', 0.1); tone(880, 0.18, 0.3, 'sine', 0.1); break;
+    case 'final': [392, 523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.16, 0.4, 'triangle', 0.12)); break;
+    case 'pass': tone(330, 0, 0.2, 'sine', 0.07); break;
+  }
+}
+function playEvent(ev) {
+  switch (ev.kind) {
+    case 'reveal': sfx('reveal', ev.count); break;
+    case 'miss': sfx('miss'); break;
+    case 'correct': sfx('correct'); break;
+    case 'incorrect': case 'wrongsolve': sfx('wrong'); break;
+    case 'solve': sfx('solve'); break;
+    case 'time': sfx('buzzer'); break;
+    case 'round': sfx('round'); break;
+    case 'final': sfx('final'); break;
+    case 'pass': sfx('pass'); break;
+  }
+}
+
+/* ---------------- Toast and modal ---------------- */
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+function modal(html) {
+  const m = $('#modal');
+  m.innerHTML = '<div class="sheet">' + html + '</div>';
+  m.hidden = false;
+}
+function closeModal() { $('#modal').hidden = true; $('#modal').innerHTML = ''; }
+function modalOpen() { return !$('#modal').hidden; }
+
+/* ---------------- Board layout (scales to any phrase length) ----------------
+   Words are packed into lines. We try each possible line width and keep the
+   layout that gives the biggest tiles that still fit the space. */
+function layoutWords(lens, availW, availH) {
+  const n = lens.length;
+  if (!n) return null;
+  const wc = lens.map(l => l * 1.12);          // letter tile plus gap
+  const total = wc.reduce((a, b) => a + b, 0) + 0.84 * (n - 1);
+  const maxw = Math.max(...wc);
+  let best = null;
+  for (let W = maxw; W <= total + 0.5; W += 0.25) {
+    const lines = [];
+    let cur = [], cu = 0;
+    for (let i = 0; i < n; i++) {
+      const add = cur.length ? 0.84 + wc[i] : wc[i];   // 0.84 = word space
+      if (cur.length && cu + add > W) { lines.push(cur); cur = [i]; cu = wc[i]; }
+      else { cur.push(i); cu += add; }
+    }
+    if (cur.length) lines.push(cur);
+    let maxU = 0;
+    for (const l of lines) {
+      const u = l.reduce((a, i) => a + wc[i], 0) + 0.84 * (l.length - 1);
+      if (u > maxU) maxU = u;
+    }
+    const L = lines.length;
+    const tW = availW / maxU;
+    const tH = availH / (1.25 * L + 0.12 * (L - 1));
+    const t = Math.min(tW, tH, 180);
+    if (!best || t > best.t) best = {lines, t};
+  }
+  return best;
+}
+function wordsOf(board) {
+  const words = [];
+  let cur = null;
+  board.forEach((c, idx) => {
+    if (c === ' ') { if (cur) { words.push(cur); cur = null; } }
+    else { if (!cur) cur = []; cur.push({c, idx}); }
+  });
+  if (cur) words.push(cur);
+  return words;
+}
+function sizeBoard(wrap, board, pops) {
+  if (!wrap) return;
+  const inner = wrap.querySelector('.boardin');
+  if (!inner) return;
+  const words = wordsOf(board || []);
+  if (!words.length) { inner.innerHTML = ''; return; }
+  const lay = layoutWords(words.map(w => w.length), wrap.clientWidth * 0.94, wrap.clientHeight * 0.94);
+  if (!lay) return;
+  const t = Math.max(10, Math.floor(lay.t));
+  const gap = Math.round(t * 0.12), sp = Math.round(t * 0.6), h = Math.round(t * 1.25);
+  const fs = Math.round(t * 0.66), rad = Math.max(3, Math.round(t * 0.1));
+  let html = '';
+  lay.lines.forEach((line, li) => {
+    html += '<div class="line" style="margin-top:' + (li ? gap : 0) + 'px">';
+    line.forEach((wi, k) => {
+      if (k) html += '<div class="sp" style="width:' + sp + 'px"></div>';
+      html += '<div class="word" style="gap:' + gap + 'px">';
+      for (const cell of words[wi]) {
+        const isPop = pops && pops.has(cell.idx);
+        const cls = (cell.c === null ? 'hid' : 'shown') + (isPop ? ' pop' : '');
+        const delay = isPop ? ';animation-delay:' + pops.get(cell.idx) + 'ms' : '';
+        html += '<div class="tile ' + cls + '" style="width:' + t + 'px;height:' + h + 'px;font-size:' + fs + 'px;border-radius:' + rad + 'px' + delay + '">' + (cell.c || '') + '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  inner.innerHTML = html;
+}
+
+/* =====================================================================
+   SCOUTER CONTROL PANEL
+   ===================================================================== */
+function levelOpts(anyLabel, selected) {
+  return '<option value="any">' + anyLabel + '</option>' + LEVELS.map(l => '<option value="' + l + '"' + (selected === l ? ' selected' : '') + '>' + l + '</option>').join('');
+}
+
+function renderScouter() {
+  if (MODE !== 'scouter') return;
+  const root = $('#scouter');
+  const canStart = (S.stage === 'idle' || S.stage === 'ended') && !S.finished && S.roundNo < S.totalRounds;
+  const canPick = (S.stage === 'choose' || S.stage === 'answering') && !!S.phrase;
+  const canMark = S.stage === 'answering';
+  const canGuess = S.stage === 'guess';
+  const canPass = canMark || canGuess;
+  const canSetActive = ['idle', 'choose', 'ended'].includes(S.stage);
+  const usedQ = new Set(S.usedQ);
+  const pub = buildPublic();
+  const pct = Math.round(pub.progress * 100);
+
+  const pCards = S.patrols.map((p, i) => {
+    const on = i === S.active;
+    return '<div class="pcard' + (on ? ' on' : '') + '" style="--c:' + COLOURS[i] + '">' +
+      '<div class="pc-top"><input class="pname" data-i="' + i + '" maxlength="20" value="' + esc(p.name) + '" aria-label="Patrol ' + (i + 1) + ' name">' +
+      '<div class="pscore">' + p.score + '</div></div>' +
+      '<div class="pc-meta">Turns taken: ' + p.turns + ' · Points this round: ' + S.roundPts[i] + '</div>' +
+      '<div class="row">' +
+      '<button data-act="set-active" data-i="' + i + '" ' + ((canSetActive && !on) ? '' : 'disabled') + '>' + (on ? 'Playing now' : 'Make active') + '</button>' +
+      '<input class="num adj" type="number" min="1" step="5" value="10" aria-label="Points to adjust">' +
+      '<button data-act="adjust" data-i="' + i + '" data-d="-1">−</button>' +
+      '<button data-act="adjust" data-i="' + i + '" data-d="1">+</button>' +
+      '</div></div>';
+  }).join('');
+
+  const pOpts = BANK.phrases.map(p => '<option value="' + p.id + '">' + esc(p.category) + ': ' + esc(p.text) + ' (' + p.level + ')</option>').join('');
+  const qOpts = BANK.questions.slice()
+    .sort((x, y) => x.area - y.area || LEVELS.indexOf(x.level) - LEVELS.indexOf(y.level))
+    .map(q => '<option value="' + q.id + '">' + (usedQ.has(q.id) ? '✓ ' : '') + q.area + '. ' + esc(trim(q.q, 70)) + ' (' + q.level + ')</option>').join('');
+
+  const keys = [...LETTERS].map(L => {
+    const st = S.guessed[L] || '';
+    const off = canGuess ? '' : ' off';
+    return '<button class="key ' + st + off + '" data-act="letter" data-l="' + L + '" title="' + NATO[L] + ' = ' + L + '">' + L + '</button>';
+  }).join('');
+
+  const questionBlock = S.question
+    ? '<div class="qbox"><div class="muted small">' + esc(AREAS[S.question.area]) + ' · ' + esc(S.question.level) + '</div>' +
+      '<div class="qtxt">' + esc(S.question.q) + '</div>' +
+      '<div class="answer-box"><b>Answer (Scouter only):</b> ' + esc(S.question.a) + '</div></div>'
+    : '<div class="muted">No question chosen for this turn.</div>';
+
+  const screenBtns = S.finished
+    ? '<button data-act="back-board">Back to game</button>'
+    : '<button data-act="screen" data-s="board" ' + (S.screen === 'board' ? 'disabled' : '') + '>Show board</button>' +
+      '<button data-act="screen" data-s="blank" ' + (S.screen === 'blank' ? 'disabled' : '') + '>Blank screen</button>';
+
+  root.innerHTML =
+    '<header class="top">' +
+      '<div class="title">Pioneering Wheel of Fortune<small>Scouter control panel · keep this window on the laptop</small></div>' +
+      '<div class="btns">' +
+        '<span id="conn" class="conn">Checking projector…</span>' +
+        '<button data-act="open-projector">Open projector window</button>' +
+        '<button data-act="board-here">Board view in this window</button>' +
+        '<button data-act="fullscreen">Full screen</button>' +
+        '<button data-act="mute">' + (PREFS.muted ? 'Sound: off' : 'Sound: on') + '</button>' +
+        '<button data-act="undo" ' + (undoStack.length ? '' : 'disabled') + '>Undo (Ctrl+Z)</button>' +
+        '<button data-act="keys">Keys and rules</button>' +
+        '<button class="danger" data-act="new-game">New game</button>' +
+      '</div></header>' +
+    '<div class="grid">' +
+      '<div class="col">' +
+        '<section class="card"><h3>Patrols</h3>' + pCards + '</section>' +
+        '<section class="card"><h3>Round ' + S.roundNo + ' of ' + S.totalRounds + '</h3>' +
+          '<div class="stage-note">' + esc(stageText()) + '</div>' +
+          '<div class="lbl">Next phrase</div>' +
+          '<div class="row"><select id="phraseSel" class="grow"><option value="random">Random (from unused)</option>' + pOpts + '</select></div>' +
+          '<div class="row"><select id="phraseLevel">' + levelOpts('Any level') + '</select></div>' +
+          '<div class="row"><button class="primary btn-big grow" data-act="start-round" ' + (canStart ? '' : 'disabled') + '>Start round ' + (S.roundNo + 1) + '</button></div>' +
+          '<div class="row"><label class="small">Total rounds <input id="totalRounds" type="number" min="1" max="20" value="' + S.totalRounds + '" class="num"></label></div>' +
+          '<div class="row">' +
+            '<button class="bad" data-act="reveal-answer" ' + ((S.phrase && S.stage !== 'idle' && S.stage !== 'ended') ? '' : 'disabled') + '>Reveal answer (ends round)</button>' +
+            '<button data-act="reset-round" ' + ((S.roundStart && S.phrase) ? '' : 'disabled') + '>Reset this round</button>' +
+          '</div>' +
+          '<div class="row">' + screenBtns + '</div>' +
+          '<div class="row"><button class="danger" data-act="finish" ' + (S.finished ? 'disabled' : '') + '>Finish game and show leaderboard</button></div>' +
+        '</section>' +
+        '<section class="card"><h3>Countdown timer</h3>' +
+          '<div class="row"><input id="timerSecs" type="number" min="5" max="600" value="' + S.timerSecs + '" class="num"><span class="muted">seconds</span>' +
+          '<button class="grow" data-act="timer-start">Start</button><button data-act="timer-stop">Stop</button></div>' +
+          '<div class="big-timer" id="scTimer">-</div>' +
+        '</section>' +
+      '</div>' +
+      '<div class="col">' +
+        '<section class="card"><h3>Projector board (preview)</h3>' +
+          '<div class="preview" id="previewBoard"><div class="boardin"></div></div>' +
+          '<div class="row small muted"><span>Category: ' + esc(S.phrase ? S.phrase.category : '-') + '</span><span>· Revealed: ' + pct + '%</span></div>' +
+          '<div class="answer-box"><b>Hidden phrase (Scouter only):</b> ' + esc(S.phrase ? S.phrase.text : '-') + '</div>' +
+        '</section>' +
+        '<section class="card"><h3>Question and turn</h3>' +
+          '<div class="row"><select id="qLevel">' + levelOpts('Any level') + '</select>' +
+          '<select id="qSel" class="grow"><option value="">Random (unused)</option>' + qOpts + '</select></div>' +
+          '<div class="row"><button class="primary" data-act="pick-question" ' + (canPick ? '' : 'disabled') + '>' + (S.question ? 'Choose another question' : 'Choose question') + '</button>' +
+          '<button data-act="toggle-q" ' + (S.question ? '' : 'disabled') + '>' + (S.questionShown ? 'Hide question from projector (F2)' : 'Show question on projector (F2)') + '</button></div>' +
+          questionBlock +
+          '<div class="row" style="margin-top:10px">' +
+            '<button class="good btn-big grow" data-act="mark-correct" ' + (canMark ? '' : 'disabled') + '>Correct (Enter)</button>' +
+            '<button class="bad btn-big grow" data-act="mark-wrong" ' + (canMark ? '' : 'disabled') + '>Incorrect (Delete)</button>' +
+          '</div>' +
+          '<div class="row">' +
+            '<button data-act="pass" ' + (canPass ? '' : 'disabled') + '>Pass (no letter)</button>' +
+            '<button data-act="solve-correct" ' + (canGuess ? '' : 'disabled') + '>Phrase right: +' + SOLVE_BONUS + '</button>' +
+            '<button data-act="solve-wrong" ' + (canGuess ? '' : 'disabled') + '>Phrase wrong</button>' +
+          '</div>' +
+        '</section>' +
+        '<section class="card"><h3>Letters called by radio</h3>' +
+          '<div class="row"><input id="say" placeholder="Patrol says, e.g. Bravo" autocomplete="off" class="grow" ' + (canGuess ? '' : 'disabled') + '><button data-act="say" ' + (canGuess ? '' : 'disabled') + '>Call</button></div>' +
+          '<div class="kb" id="kb">' + keys + '</div>' +
+          '<div class="nato" id="nato">Hover or click a letter to see its NATO word.</div>' +
+        '</section>' +
+      '</div>' +
+      '<div class="col">' +
+        '<section class="card"><h3>Question and phrase banks</h3>' +
+          '<div class="muted small">' + BANK.questions.length + ' questions · ' + BANK.phrases.length + ' phrases. Edits are saved in this browser.</div>' +
+          '<div class="row"><button data-act="edit-questions">Edit questions</button><button data-act="edit-phrases">Edit phrases</button></div>' +
+          '<div class="row"><button data-act="export-bank">Export bank (backup)</button><button data-act="import-bank">Import bank</button><button class="bad" data-act="reset-bank">Reset to built-in</button></div>' +
+        '</section>' +
+        '<section class="card"><h3>Rules</h3><ul class="rules">' +
+          '<li>Correct answer: that Patrol may call one letter or try the phrase.</li>' +
+          '<li>Each occurrence of a called letter: ' + POINTS_PER_LETTER + ' points. A miss scores 0.</li>' +
+          '<li>Phrase solved: ' + SOLVE_BONUS + ' bonus points. Wrong solve: 0, turn passes.</li>' +
+          '<li>Every turn passes to the next Patrol, right or wrong.</li>' +
+          '<li>Highest total after all rounds wins.</li></ul></section>' +
+        '<section class="card"><h3>Game log</h3><div class="log">' + esc(S.log.slice(0, 80).join('\n')) + '</div></section>' +
+      '</div>' +
+    '</div>';
+
+  sizeBoard($('#previewBoard'), pub.board, null);
+  updateConn();
+  updateTimers();
+  if (document.body.classList.contains('board-here')) renderProjector(pub);
+}
+
+function updateConn() {
+  if (MODE !== 'scouter') return;
+  const el = $('#conn');
+  if (!el) return;
+  if (document.body.classList.contains('board-here')) {
+    el.textContent = 'Board shown in this window'; el.className = 'conn ok'; return;
+  }
+  const hb = Number(lsGet(KEY_HB)) || 0;
+  const ok = Date.now() - hb < 4000;
+  el.textContent = ok ? 'Projector window: connected' : 'Projector window: not connected';
+  el.className = 'conn ' + (ok ? 'ok' : 'bad');
+}
+
+/* ---------------- Scouter actions ---------------- */
+function openProjector() {
+  const base = location.href.split('#')[0].split('?')[0];
+  const w = window.open(base + '?view=projector', 'pioneer-projector', 'width=1280,height=720');
+  if (!w) toast('Pop-up blocked. Allow pop-ups for this file, then try again.');
+}
+function toggleBoardHere(on) {
+  document.body.classList.toggle('board-here', on);
+  if (on) { closeModal(); renderProjector(buildPublic()); } else { renderScouter(); }
+}
+function toggleFS() {
+  if (!document.fullscreenElement) {
+    const p = document.documentElement.requestFullscreen ? document.documentElement.requestFullscreen() : null;
+    if (p && p.catch) p.catch(() => toast('The browser blocked full screen.'));
+  } else if (document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+}
+
+function startRound() {
+  if (S.finished) return toast('The game has finished. Start a new game, or go back to the game.');
+  if (!(S.stage === 'idle' || S.stage === 'ended')) return toast('A round is already running.');
+  if (S.roundNo >= S.totalRounds) return toast('All rounds have been played. Finish the game.');
+  const sel = ($('#phraseSel') || {}).value || 'random';
+  const lvl = ($('#phraseLevel') || {}).value || 'any';
+  commit(() => {
+    const ph = sel === 'random' ? pickPhrase(lvl) : BANK.phrases.find(p => p.id === sel);
+    if (!ph) { logMsg('No phrase available for that choice'); return; }
+    S.roundNo++;
+    S.phrase = {id: ph.id, text: normPhrase(ph.text), category: ph.category, level: ph.level};
+    if (!S.usedP.includes(ph.id)) S.usedP.push(ph.id);
+    S.guessed = {};
+    S.revealAll = false;
+    S.roundPts = [0, 0, 0];
+    S.roundStart = {active: S.active, turns: S.patrols.map(p => p.turns)};
+    S.stage = 'choose';
+    S.question = null;
+    S.questionShown = false;
+    S.timerEnd = null;
+    setEvent('round', {round: S.roundNo, category: S.phrase.category});
+    logMsg('Round ' + S.roundNo + ' started (' + S.phrase.category + '). ' + S.patrols[S.active].name + ' go first.');
+  });
+}
+
+function pickQ() {
+  if (!canPickNow()) return toast('Start a round first. Questions are picked between turns.');
+  const id = ($('#qSel') || {}).value || '';
+  const lvl = ($('#qLevel') || {}).value || 'any';
+  commit(() => {
+    const q = id ? BANK.questions.find(x => x.id === id) : pickQuestion(lvl);
+    if (!q) { logMsg('No question available'); return; }
+    if (S.stage === 'choose') { S.patrols[S.active].turns++; S.stage = 'answering'; }
+    S.question = {id: q.id, area: q.area, level: q.level, q: q.q, a: q.a};
+    S.questionShown = false;
+    if (!S.usedQ.includes(q.id)) S.usedQ.push(q.id);
+    logMsg('Question for ' + S.patrols[S.active].name + ': ' + AREAS[q.area] + ' (' + q.level + ')');
+  });
+}
+function canPickNow() { return (S.stage === 'choose' || S.stage === 'answering') && !!S.phrase; }
+
+function toggleQ() {
+  if (!S.question) return toast('Choose a question first.');
+  commit(() => {
+    S.questionShown = !S.questionShown;
+    logMsg('Question ' + (S.questionShown ? 'shown on' : 'hidden from') + ' projector');
+  });
+}
+
+function markCorrect() {
+  if (S.stage !== 'answering') return toast(S.stage === 'choose' ? 'Choose a question first.' : 'Nothing to mark right now.');
+  commit(() => {
+    S.stage = 'guess';
+    const nm = S.patrols[S.active].name;
+    setEvent('correct', {patrol: nm});
+    logMsg(nm + ': correct. May call one letter or try the phrase.');
+  });
+}
+function markWrong() {
+  if (S.stage !== 'answering') return toast(S.stage === 'choose' ? 'Choose a question first.' : 'Nothing to mark right now.');
+  commit(() => {
+    const nm = S.patrols[S.active].name;
+    advance();
+    S.stage = 'choose'; S.question = null; S.questionShown = false;
+    const next = S.patrols[S.active].name;
+    setEvent('incorrect', {patrol: nm, next});
+    logMsg(nm + ': incorrect. Turn passes to ' + next + '.');
+  });
+}
+function passTurn() {
+  if (!(S.stage === 'answering' || S.stage === 'guess')) return;
+  commit(() => {
+    const nm = S.patrols[S.active].name;
+    advance();
+    S.stage = 'choose'; S.question = null; S.questionShown = false;
+    setEvent('pass', {patrol: nm});
+    logMsg(nm + ' pass. Turn passes to ' + S.patrols[S.active].name + '.');
+  });
+}
+
+function callLetter(L) {
+  if (!L) return;
+  if (S.stage !== 'guess') return toast(S.patrols[S.active].name + ' must answer correctly before calling a letter.');
+  if (S.guessed[L]) return toast(L + ' has already been called.');
+  commit(() => doLetter(L));
+}
+function doLetter(L) {
+  const pIdx = S.active, pt = S.patrols[pIdx];
+  const n = letterCount(L);
+  if (n > 0) {
+    S.guessed[L] = 'hit';
+    const pts = n * POINTS_PER_LETTER;
+    pt.score += pts;
+    S.roundPts[pIdx] += pts;
+    setEvent('reveal', {letter: L, phonetic: NATO[L], count: n, pts, patrol: pt.name});
+    logMsg(pt.name + ': ' + NATO[L] + ' (' + L + ') × ' + n + ', +' + pts);
+  } else {
+    S.guessed[L] = 'miss';
+    setEvent('miss', {letter: L, phonetic: NATO[L], patrol: pt.name});
+    logMsg(pt.name + ': ' + NATO[L] + ' (' + L + ') not in the phrase, 0 points');
+  }
+  advance();
+  S.question = null; S.questionShown = false;
+  if (allRevealed()) {
+    S.revealAll = true;
+    S.stage = 'ended';
+    logMsg('Every letter is now revealed. Round over (no solve bonus for finishing by letters).');
+  } else {
+    S.stage = 'choose';
+  }
+}
+
+function sayLetter() {
+  const raw = (($('#say') || {}).value || '').trim().toUpperCase().replace(/[^A-Z]/g, '');
+  if (!raw) return;
+  const L = PHONETIC_LOOKUP[raw] || (raw.length === 1 ? raw : null);
+  if (!L) return toast('Not a NATO word. Try "Bravo".');
+  if (S.stage !== 'guess') return toast(S.patrols[S.active].name + ' must answer correctly first.');
+  if (S.guessed[L]) return toast(L + ' has already been called.');
+  commit(() => doLetter(L));
+}
+
+function solve(ok) {
+  if (S.stage !== 'guess') return toast('A phrase attempt is only possible after a correct answer.');
+  commit(() => {
+    const pIdx = S.active, pt = S.patrols[pIdx], nm = pt.name;
+    if (ok) {
+      pt.score += SOLVE_BONUS;
+      S.roundPts[pIdx] += SOLVE_BONUS;
+      S.revealAll = true;
+      S.stage = 'ended'; S.question = null; S.questionShown = false;
+      advance();
+      setEvent('solve', {patrol: nm, pts: SOLVE_BONUS});
+      logMsg(nm + ': phrase solved, +' + SOLVE_BONUS + '. Round over.');
+    } else {
+      advance();
+      S.stage = 'choose'; S.question = null; S.questionShown = false;
+      setEvent('wrongsolve', {patrol: nm});
+      logMsg(nm + ': phrase not correct. No bonus, turn passes.');
+    }
+  });
+}
+
+function revealAnswer() {
+  if (!S.phrase || S.stage === 'idle' || S.stage === 'ended') return;
+  if (!confirm('Reveal the answer on the projector and end this round? No more points will be scored.')) return;
+  commit(() => {
+    S.revealAll = true;
+    S.stage = 'ended'; S.question = null; S.questionShown = false;
+    setEvent('reveal-answer');
+    logMsg('Answer revealed by the Scouter. Round over, no further points.');
+  });
+}
+
+function resetRound() {
+  if (!S.roundStart || !S.phrase) return;
+  if (!confirm('Reset this round? Points won this round are taken back and the same phrase restarts.')) return;
+  commit(() => {
+    S.patrols.forEach((p, i) => { p.score -= S.roundPts[i]; p.turns = S.roundStart.turns[i]; });
+    S.roundPts = [0, 0, 0];
+    S.active = S.roundStart.active;
+    S.guessed = {};
+    S.revealAll = false;
+    S.stage = 'choose'; S.question = null; S.questionShown = false;
+    S.timerEnd = null;
+    setEvent('info');
+    logMsg('Round ' + S.roundNo + ' reset. Round points removed. Questions already asked stay used.');
+  });
+}
+
+function finishGame() {
+  const live = !(S.stage === 'idle' || S.stage === 'ended');
+  const msg = live ? 'A round is still running. Finish the game anyway and show the leaderboard?' : 'Finish the game and show the final leaderboard on the projector?';
+  if (!confirm(msg)) return;
+  commit(() => {
+    S.finished = true;
+    S.screen = 'final';
+    S.stage = 'idle'; S.question = null; S.questionShown = false; S.timerEnd = null;
+    setEvent('final');
+    logMsg('Game finished. Final leaderboard on the projector.');
+  });
+}
+
+function startTimer() {
+  const secs = clamp(parseInt(($('#timerSecs') || {}).value, 10) || 30, 5, 600);
+  commit(() => {
+    S.timerSecs = secs;
+    S.timerEnd = Date.now() + secs * 1000;
+    logMsg('Timer started: ' + secs + ' seconds');
+  });
+}
+function timeUp() {
+  commit(() => {
+    S.timerEnd = null;
+    setEvent('time');
+    logMsg('Time up');
+  });
+}
+
+function newGameConfirm() {
+  if (!confirm('Start a new game? This clears scores, rounds and the used-question list. Your question and phrase banks are kept.')) return;
+  S = newGame();
+  undoStack = [];
+  prevEventId = 0;
+  persist();
+  renderScouter();
+}
+
+/* ---------------- Bank editor (modal) ---------------- */
+function openQList() {
+  modal('<h2>Question bank <span class="muted small">(' + BANK.questions.length + ')</span></h2>' +
+    '<p class="muted small">Question text goes on the projector when shown. The answer is for the Scouter only.</p>' +
+    '<div class="tbl"><table><thead><tr><th>#</th><th>Area</th><th>Level</th><th>Question and answer</th><th></th></tr></thead><tbody>' +
+    BANK.questions.map((q, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(AREAS[q.area]) + '</td><td>' + esc(q.level) + '</td><td>' + esc(q.q) + '<div class="ans">Answer: ' + esc(q.a) + '</div></td>' +
+      '<td class="nw"><button data-act="q-edit" data-id="' + q.id + '">Edit</button> <button class="bad" data-act="q-del" data-id="' + q.id + '">Delete</button></td></tr>').join('') +
+    '</tbody></table></div>' +
+    '<div class="row" style="margin-top:12px"><button class="good" data-act="q-add">+ Add question</button><button data-act="close-modal">Close</button></div>');
+}
+function openQForm(id) {
+  const q = id ? BANK.questions.find(x => x.id === id) : {area: 1, level: 'easy', q: '', a: ''};
+  if (!q) return;
+  modal('<h2>' + (id ? 'Edit' : 'Add') + ' question</h2>' +
+    '<label>Learning area<select id="f-area">' + AREAS.slice(1).map((n, i) => '<option value="' + (i + 1) + '"' + (q.area === i + 1 ? ' selected' : '') + '>' + (i + 1) + '. ' + esc(n) + '</option>').join('') + '</select></label>' +
+    '<label>Level<select id="f-level">' + LEVELS.map(l => '<option value="' + l + '"' + (q.level === l ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label>' +
+    '<label>Question (shown on projector)<textarea id="f-q" rows="3">' + esc(q.q) + '</textarea></label>' +
+    '<label>Answer (Scouter only)<textarea id="f-a" rows="3">' + esc(q.a) + '</textarea></label>' +
+    '<div class="row"><button class="primary" data-act="q-save" data-id="' + (id || '') + '">Save</button><button data-act="q-list">Cancel</button></div>');
+}
+function saveQForm(id) {
+  const area = parseInt($('#f-area').value, 10), level = $('#f-level').value;
+  const q = $('#f-q').value.trim(), a = $('#f-a').value.trim();
+  if (!q || !a) return toast('Both the question and the answer are needed.');
+  if (id) {
+    const it = BANK.questions.find(x => x.id === id);
+    if (it) Object.assign(it, {area, level, q, a});
+  } else {
+    BANK.questions.push({id: 'q' + Date.now().toString(36), area, level, q, a});
+  }
+  saveBank();
+  openQList();
+  renderScouter();
+}
+function deleteQ(id) {
+  const it = BANK.questions.find(x => x.id === id);
+  if (!it || !confirm('Delete this question?\n\n' + it.q)) return;
+  BANK.questions = BANK.questions.filter(x => x.id !== id);
+  saveBank();
+  openQList();
+  renderScouter();
+}
+
+function openPList() {
+  modal('<h2>Phrase bank <span class="muted small">(' + BANK.phrases.length + ')</span></h2>' +
+    '<p class="muted small">Phrases are converted to capitals A to Z. Other characters become spaces. Keep phrases under 60 characters.</p>' +
+    '<div class="tbl"><table><thead><tr><th>Phrase</th><th>Category</th><th>Level</th><th></th></tr></thead><tbody>' +
+    BANK.phrases.map(p => '<tr><td>' + esc(p.text) + '</td><td>' + esc(p.category) + '</td><td>' + esc(p.level) + '</td>' +
+      '<td class="nw"><button data-act="p-edit" data-id="' + p.id + '">Edit</button> <button class="bad" data-act="p-del" data-id="' + p.id + '">Delete</button></td></tr>').join('') +
+    '</tbody></table></div>' +
+    '<div class="row" style="margin-top:12px"><button class="good" data-act="p-add">+ Add phrase</button><button data-act="close-modal">Close</button></div>');
+}
+function openPForm(id) {
+  const p = id ? BANK.phrases.find(x => x.id === id) : {text: '', category: '', level: 'easy'};
+  if (!p) return;
+  modal('<h2>' + (id ? 'Edit' : 'Add') + ' phrase</h2>' +
+    '<label>Phrase (A to Z and spaces)<input id="f-text" maxlength="60" value="' + esc(p.text) + '"></label>' +
+    '<label>Category<input id="f-cat" maxlength="40" value="' + esc(p.category) + '"></label>' +
+    '<label>Level<select id="f-level">' + LEVELS.map(l => '<option value="' + l + '"' + (p.level === l ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label>' +
+    '<div class="row"><button class="primary" data-act="p-save" data-id="' + (id || '') + '">Save</button><button data-act="p-list">Cancel</button></div>');
+}
+function savePForm(id) {
+  const text = normPhrase($('#f-text').value);
+  const category = $('#f-cat').value.trim() || 'General';
+  const level = $('#f-level').value;
+  if (text.length < 3 || !/[A-Z]/.test(text)) return toast('A phrase needs at least a few letters.');
+  if (text.length > 60) return toast('Phrase is too long (max 60 characters).');
+  if (id) {
+    const it = BANK.phrases.find(x => x.id === id);
+    if (it) Object.assign(it, {text, category, level});
+  } else {
+    BANK.phrases.push({id: 'p' + Date.now().toString(36), text, category, level});
+  }
+  saveBank();
+  openPList();
+  renderScouter();
+}
+function deleteP(id) {
+  const it = BANK.phrases.find(x => x.id === id);
+  if (!it || !confirm('Delete this phrase?\n\n' + it.text)) return;
+  BANK.phrases = BANK.phrases.filter(x => x.id !== id);
+  saveBank();
+  openPList();
+  renderScouter();
+}
+
+function exportBank() {
+  const blob = new Blob([JSON.stringify(BANK, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pioneering-wheel-bank.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function importBankFile(file) {
+  const rd = new FileReader();
+  rd.onload = () => {
+    const data = jparse(String(rd.result || ''), null);
+    if (!data || !Array.isArray(data.questions) || !Array.isArray(data.phrases)) return toast('That file is not a bank export.');
+    const qs = data.questions.filter(q => q && q.q && q.a && q.area >= 1 && q.area <= 10 && LEVELS.includes(q.level))
+      .map((q, i) => ({id: q.id || 'i' + Date.now().toString(36) + i, area: +q.area, level: q.level, q: String(q.q), a: String(q.a)}));
+    const ps = data.phrases.map((p, i) => ({id: p.id || 'j' + Date.now().toString(36) + i, text: normPhrase(p.text), category: String(p.category || 'General'), level: LEVELS.includes(p.level) ? p.level : 'easy'}))
+      .filter(p => p.text.length >= 3 && p.text.length <= 60);
+    if (!confirm('Replace the whole bank with this file (' + qs.length + ' questions, ' + ps.length + ' phrases)?')) return;
+    BANK = {questions: qs, phrases: ps};
+    saveBank();
+    toast('Bank imported');
+    renderScouter();
+  };
+  rd.readAsText(file);
+}
+
+function openKeys() {
+  modal('<h2>Keys and rules</h2><div class="cols"><div><h3>Keys</h3><ul class="keys">' +
+    '<li><kbd>Enter</kbd> Answer correct</li>' +
+    '<li><kbd>Delete</kbd> Answer incorrect</li>' +
+    '<li><kbd>A</kbd> to <kbd>Z</kbd> Call that letter (only after a correct answer)</li>' +
+    '<li><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> Make that Patrol active (between turns)</li>' +
+    '<li><kbd>F2</kbd> Show or hide the question on the projector</li>' +
+    '<li><kbd>Ctrl</kbd>+<kbd>Z</kbd> Undo</li>' +
+    '<li><kbd>Esc</kbd> Close this box, or leave board view</li></ul></div>' +
+    '<div><h3>Turn order</h3><ul class="rules">' +
+    '<li>Turns go round the three Patrols in order, whether the answer is right or wrong.</li>' +
+    '<li>Correct answer: that Patrol may call one letter, or try the phrase.</li>' +
+    '<li>Each occurrence of a called letter: ' + POINTS_PER_LETTER + ' points. A miss scores 0.</li>' +
+    '<li>Phrase right: +' + SOLVE_BONUS + '. Phrase wrong: 0.</li></ul>' +
+    '<h3>NATO reference</h3><div class="nato-grid">' + Object.entries(NATO).map(([L, w]) => '<span><b>' + L + '</b> ' + w + '</span>').join('') + '</div>' +
+    '</div></div><div class="row"><button data-act="close-modal">Close</button></div>');
+}
+
+/* ---------------- Scouter events ---------------- */
+function handleAct(act, el) {
+  switch (act) {
+    case 'open-projector': return openProjector();
+    case 'board-here': return toggleBoardHere(true);
+    case 'board-off': return toggleBoardHere(false);
+    case 'fullscreen': return toggleFS();
+    case 'mute': PREFS.muted = !PREFS.muted; savePrefs(); return renderScouter();
+    case 'undo': return undo();
+    case 'keys': return openKeys();
+    case 'new-game': return newGameConfirm();
+    case 'close-modal': return closeModal();
+    case 'set-active': {
+      const i = +el.dataset.i;
+      if (!['idle', 'choose', 'ended'].includes(S.stage)) return toast('Finish the current turn before changing the Patrol.');
+      return commit(() => { S.active = i; logMsg(S.patrols[i].name + ' set as active'); });
+    }
+    case 'adjust': {
+      const i = +el.dataset.i, d = +el.dataset.d;
+      const amt = Math.abs(parseInt(el.closest('.pcard').querySelector('.adj').value, 10) || 0);
+      if (!amt) return toast('Enter an amount first.');
+      return commit(() => {
+        S.patrols[i].score += d * amt;
+        logMsg(S.patrols[i].name + ' ' + (d * amt > 0 ? '+' : '') + (d * amt) + ' (manual adjustment)');
+      });
+    }
+    case 'start-round': return startRound();
+    case 'reveal-answer': return revealAnswer();
+    case 'reset-round': return resetRound();
+    case 'finish': return finishGame();
+    case 'back-board': return commit(() => { S.screen = 'board'; S.finished = false; logMsg('Back to the game'); });
+    case 'screen': {
+      const s = el.dataset.s;
+      return commit(() => { S.screen = s; logMsg('Projector showing: ' + (s === 'board' ? 'the board' : 'blank screen')); });
+    }
+    case 'pick-question': return pickQ();
+    case 'toggle-q': return toggleQ();
+    case 'mark-correct': return markCorrect();
+    case 'mark-wrong': return markWrong();
+    case 'pass': return passTurn();
+    case 'solve-correct': return solve(true);
+    case 'solve-wrong': return solve(false);
+    case 'letter': return callLetter(el.dataset.l);
+    case 'say': return sayLetter();
+    case 'timer-start': return startTimer();
+    case 'timer-stop': return commit(() => { S.timerEnd = null; logMsg('Timer stopped'); });
+    case 'edit-questions': return openQList();
+    case 'edit-phrases': return openPList();
+    case 'export-bank': return exportBank();
+    case 'import-bank': return $('#importFile').click();
+    case 'reset-bank':
+      if (!confirm('Reset the question and phrase banks to the built-in ones? Your edits will be lost.')) return;
+      lsDel(KEY_BANK); BANK = defaultBank(); toast('Bank reset to built-in'); return renderScouter();
+    case 'q-add': return openQForm(null);
+    case 'q-edit': return openQForm(el.dataset.id);
+    case 'q-save': return saveQForm(el.dataset.id || null);
+    case 'q-list': return openQList();
+    case 'q-del': return deleteQ(el.dataset.id);
+    case 'p-add': return openPForm(null);
+    case 'p-edit': return openPForm(el.dataset.id);
+    case 'p-save': return savePForm(el.dataset.id || null);
+    case 'p-list': return openPList();
+    case 'p-del': return deleteP(el.dataset.id);
+  }
+}
+
+function setupScouter() {
+  document.body.classList.add('mode-scouter');
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-act]');
+    if (!el || el.disabled) return;
+    handleAct(el.dataset.act, el);
+  });
+  $('#scouter').addEventListener('input', e => {
+    if (e.target.matches('.pname')) {
+      const i = +e.target.dataset.i;
+      S.patrols[i].name = (e.target.value.trim() || 'Patrol').slice(0, 20);
+      persist();
+    }
+  });
+  $('#scouter').addEventListener('change', e => {
+    if (e.target.id === 'totalRounds') {
+      S.totalRounds = clamp(parseInt(e.target.value, 10) || S.roundNo || 1, Math.max(1, S.roundNo), 20);
+      persist();
+      renderScouter();
+    }
+    if (e.target.id === 'timerSecs') {
+      S.timerSecs = clamp(parseInt(e.target.value, 10) || 30, 5, 600);
+      persist();
+    }
+  });
+  $('#scouter').addEventListener('mouseover', e => {
+    const b = e.target.closest && e.target.closest('button[data-l]');
+    if (b) $('#nato').textContent = NATO[b.dataset.l] + ' = ' + b.dataset.l;
+  });
+  $('#scouter').addEventListener('keydown', e => {
+    if (e.target.id === 'say' && e.key === 'Enter') { e.preventDefault(); sayLetter(); }
+  });
+  $('#importFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (f) importBankFile(f);
+  });
+  $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (modalOpen()) { closeModal(); return; }
+      if (document.body.classList.contains('board-here')) { toggleBoardHere(false); return; }
+    }
+    if (modalOpen()) return;
+    const tag = e.target.tagName || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'Enter') {
+      if (tag === 'BUTTON') return;
+      e.preventDefault();
+      if (S.stage === 'answering') markCorrect();
+      return;
+    }
+    if (e.key === 'Delete') { if (S.stage === 'answering') markWrong(); return; }
+    if (e.key === 'F2') { e.preventDefault(); if (S.question) toggleQ(); return; }
+    if (/^[1-3]$/.test(e.key)) {
+      const i = +e.key - 1;
+      if (['idle', 'choose', 'ended'].includes(S.stage) && S.active !== i) commit(() => { S.active = i; logMsg(S.patrols[i].name + ' set as active'); });
+      return;
+    }
+    if (/^[a-zA-Z]$/.test(e.key) && S.stage === 'guess') callLetter(e.key.toUpperCase());
+  });
+
+  renderScouter();
+  persist();
+  setInterval(() => {
+    updateConn();
+    if (S.timerEnd && Date.now() >= S.timerEnd) timeUp();
+    updateTimers();
+  }, 500);
+}
+
+/* =====================================================================
+   PROJECTOR
+   ===================================================================== */
+let lastRaw = null, lastPubObj = null, lastEvId = null, lastScreen = null;
+let prevBoard = null, popMap = new Map();
+
+function fmtT(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(s / 60);
+  return m ? m + ':' + String(s % 60).padStart(2, '0') : String(s);
+}
+function currentTimerEnd() {
+  return MODE === 'projector' ? (lastPubObj ? lastPubObj.timerEnd : null) : S.timerEnd;
+}
+function updateTimers() {
+  const te = currentTimerEnd();
+  const pEl = $('#ptimer');
+  if (pEl) {
+    if (te) { const r = te - Date.now(); pEl.textContent = fmtT(r); pEl.classList.toggle('low', r <= 5000); }
+    else { pEl.textContent = ''; pEl.classList.remove('low'); }
+  }
+  const sEl = $('#scTimer');
+  if (sEl) {
+    if (te) { const r = te - Date.now(); sEl.textContent = fmtT(r); sEl.classList.toggle('low', r <= 5000); }
+    else { sEl.textContent = '-'; sEl.classList.remove('low'); }
+  }
+}
+
+function nowText(pub) {
+  const a = pub.patrols[pub.active] ? pub.patrols[pub.active].name : '';
+  switch (pub.stage) {
+    case 'choose': return a + ' to take the next turn';
+    case 'answering': return a + ' answering over the radio';
+    case 'guess': return a + ': call a letter using the phonetic alphabet, or attempt the phrase';
+    case 'ended': return 'Round complete';
+  }
+  return pub.roundNo ? 'Between rounds' : 'Waiting to start';
+}
+
+function boardHTML(pub) {
+  const playing = pub.stage === 'choose' || pub.stage === 'answering' || pub.stage === 'guess';
+  const ps = pub.patrols.map((p, i) => {
+    const on = playing && i === pub.active;
+    return '<div class="pc' + (on ? ' on' : '') + '" style="--c:' + p.colour + '">' +
+      '<div class="pn">' + esc(p.name) + '</div>' +
+      '<div class="ps">' + p.score + '</div>' +
+      '<div class="pr">' + [on ? '▶ PLAYING' : '', p.round ? '+' + p.round + ' this round' : ''].filter(Boolean).join(' · ') + '</div></div>';
+  }).join('');
+  const used = LETTERS.split('').map(L => '<span class="chip ' + (pub.used[L] || '') + '">' + L + '</span>').join('');
+  const pct = Math.round(pub.progress * 100);
+  const q = pub.question
+    ? '<div class="p-q"><div class="q-meta">' + esc(pub.question.area) + ' · ' + esc(pub.question.level) + '</div><div class="q-txt">' + esc(pub.question.text) + '</div></div>'
+    : '';
+  return '<div class="p-top"><div class="p-title">Pioneering Wheel of Fortune</div>' +
+    '<div class="p-round">' + (pub.roundNo ? 'Round ' + pub.roundNo + ' of ' + pub.totalRounds + ' · ' + esc(pub.category) : 'Get ready') + '</div>' +
+    '<div class="p-timer" id="ptimer"></div></div>' +
+    '<div class="p-scores">' + ps + '</div>' +
+    '<div class="p-now">' + esc(nowText(pub)) + '</div>' +
+    '<div class="p-board" id="pboard"><div class="boardin">' + (pub.hasPhrase ? '' : '<div class="p-empty">Waiting for the next round</div>') + '</div></div>' +
+    q +
+    '<div class="p-used"><span class="lbl">Letters called</span>' + used + '</div>' +
+    '<div class="p-bottom"><div class="p-prog"><div style="width:' + pct + '%"></div></div><span>' + pct + '% of the phrase revealed</span></div>';
+}
+
+function finalHTML(pub) {
+  const rows = pub.patrols.map((p, i) => Object.assign({i}, p)).sort((a, b) => b.score - a.score);
+  const top = rows[0].score;
+  const winners = rows.filter(r => r.score === top);
+  let head;
+  if (top === 0) head = 'No points were scored';
+  else if (winners.length === 1) head = esc(winners[0].name) + ' win the game!';
+  else head = 'Joint winners: ' + winners.map(w => esc(w.name)).join(' and ');
+  return '<div class="final"><div class="f-t">FINAL LEADERBOARD</div><div class="f-w">' + head + '</div>' +
+    '<ol class="f-list">' + rows.map((r, k) => '<li style="--c:' + r.colour + '"><span class="f-rank">' + (k + 1) + '</span><span class="f-name">' + esc(r.name) + '</span><span class="f-score">' + r.score + '</span></li>').join('') + '</ol></div>';
+}
+
+function renderProjector(pub) {
+  const stage = $('#stage');
+  if (!stage) return;
+  if (!pub) {
+    stage.innerHTML = '<div class="waiting"><h1>Waiting for the Scouter laptop</h1><p>On the laptop, open the control panel and press <b>Open projector window</b>.</p></div>';
+    return;
+  }
+  lastPubObj = pub;
+  if (pub.screen === 'final') {
+    if (lastScreen !== 'final') { confetti(); setTimeout(confetti, 900); setTimeout(confetti, 1800); }
+    stage.innerHTML = finalHTML(pub);
+  } else if (pub.screen === 'blank') {
+    stage.innerHTML = '<div class="blank"><div class="blank-t">Pioneering Wheel of Fortune</div><div class="blank-m">Please wait</div></div>';
+  } else {
+    popMap = new Map();
+    if (prevBoard && prevBoard.length === pub.board.length) {
+      let k = 0;
+      pub.board.forEach((c, i) => {
+        if (prevBoard[i] === null && c !== null && c !== ' ') { popMap.set(i, k * 140); k++; }
+      });
+    }
+    stage.innerHTML = boardHTML(pub);
+    sizeBoard($('#pboard'), pub.board, popMap);
+    prevBoard = pub.board;
+    popMap = new Map();
+  }
+  lastScreen = pub.screen;
+  const ev = pub.event;
+  if (lastEvId === null) lastEvId = ev ? ev.id : 0;
+  else if (ev && ev.id !== lastEvId) { lastEvId = ev.id; showEvent(ev); }
+  updateTimers();
+}
+
+function showBanner(html, cls) {
+  const b = $('#banner');
+  b.className = 'banner ' + cls;
+  b.innerHTML = html;
+  void b.offsetWidth;
+  b.classList.add('show');
+  clearTimeout(showBanner._t);
+  showBanner._t = setTimeout(() => b.classList.remove('show'), 3500);
+}
+function showSplash(n, cat) {
+  const s = $('#splash');
+  s.innerHTML = '<div><div class="sp-r">ROUND ' + n + '</div><div class="sp-c">' + esc(cat) + '</div></div>';
+  s.className = 'splash';
+  void s.offsetWidth;
+  s.classList.add('show');
+  clearTimeout(showSplash._t);
+  showSplash._t = setTimeout(() => s.classList.remove('show'), 3000);
+}
+function showEvent(ev) {
+  switch (ev.kind) {
+    case 'reveal':
+      return showBanner(esc(ev.phonetic) + ' = ' + esc(ev.letter) + ' &nbsp;·&nbsp; ' + ev.count + ' × ' + esc(ev.letter) + ' &nbsp;→&nbsp; <b>+' + ev.pts + '</b> ' + esc(ev.patrol), 'good');
+    case 'miss':
+      return showBanner(esc(ev.phonetic) + ' = ' + esc(ev.letter) + ' &nbsp;·&nbsp; not in the phrase &nbsp;·&nbsp; 0 points', 'bad');
+    case 'correct':
+      return showBanner('CORRECT &nbsp;·&nbsp; ' + esc(ev.patrol) + ' may call a letter or try the phrase', 'good');
+    case 'incorrect':
+      return showBanner('NOT CORRECT &nbsp;·&nbsp; turn passes to ' + esc(ev.next), 'bad');
+    case 'pass':
+      return showBanner(esc(ev.patrol) + ' pass &nbsp;·&nbsp; turn passes', '');
+    case 'solve':
+      confetti();
+      return showBanner('PHRASE SOLVED! &nbsp;<b>+' + ev.pts + '</b> ' + esc(ev.patrol), 'good');
+    case 'wrongsolve':
+      return showBanner('NOT THE PHRASE &nbsp;·&nbsp; no bonus', 'bad');
+    case 'time':
+      return showBanner('TIME\'S UP', 'bad');
+    case 'reveal-answer':
+      return showBanner('ANSWER REVEALED', '');
+    case 'round':
+      return showSplash(ev.round, ev.category);
+  }
+}
+
+/* ---------------- Confetti ---------------- */
+let confettiParts = [], confettiRAF = null;
+function confetti() {
+  const cv = $('#confetti');
+  if (!cv) return;
+  cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ['#ffc83d', '#3fd0c9', '#ff8a4c', '#c58bff', '#2fd27c', '#ffffff'];
+  for (let i = 0; i < 140; i++) {
+    confettiParts.push({x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * 0.3,
+      vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 4, s: 6 + Math.random() * 8,
+      r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, c: cols[i % cols.length]});
+  }
+  if (!confettiRAF) confettiRAF = requestAnimationFrame(confettiStep);
+}
+function confettiStep() {
+  const cv = $('#confetti');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  confettiParts.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.r += p.vr;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+    ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+    ctx.restore();
+  });
+  confettiParts = confettiParts.filter(p => p.y < cv.height + 30);
+  if (confettiParts.length) confettiRAF = requestAnimationFrame(confettiStep);
+  else { confettiRAF = null; ctx.clearRect(0, 0, cv.width, cv.height); }
+}
+
+/* ---------------- Projector start-up ---------------- */
+function pollProjector() {
+  const raw = lsGet(KEY_PUB);
+  if (raw === lastRaw) return;
+  lastRaw = raw;
+  renderProjector(raw ? jparse(raw, null) : null);
+}
+function setupProjector() {
+  document.body.classList.add('mode-projector');
+  document.title = 'Projector: Pioneering Wheel of Fortune';
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-act="fullscreen"]');
+    if (el) toggleFS();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'f' || e.key === 'F') toggleFS();
+  });
+  const hb = () => lsSet(KEY_HB, String(Date.now()));
+  hb();
+  setInterval(hb, 1000);
+  pollProjector();
+  setInterval(pollProjector, 250);
+  window.addEventListener('storage', e => { if (e.key === KEY_PUB) pollProjector(); });
+  setInterval(updateTimers, 250);
+}
+
+/* ---------------- Shared start-up ---------------- */
+window.addEventListener('resize', () => {
+  if (MODE === 'projector' || document.body.classList.contains('board-here')) {
+    if (lastPubObj && lastPubObj.screen === 'board') sizeBoard($('#pboard'), lastPubObj.board, null);
+    const cv = $('#confetti'); if (cv) { cv.width = innerWidth; cv.height = innerHeight; }
+  }
+  if (MODE === 'scouter') sizeBoard($('#previewBoard'), buildPublic().board, null);
+});
+
+if (MODE === 'projector') {
+  setupProjector();
+} else {
+  setupScouter();
+}
+</script>
+</body>
+</html>
